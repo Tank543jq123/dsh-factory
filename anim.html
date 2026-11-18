@@ -56,7 +56,8 @@ const ORDER=['intake','inject','route','skills','tool','mcp','gather','think','o
 const COL={factory:{sky:'#0f1620',wall:'#1a2330',floor:'#2a2118',belt:'#3a2c1f',beltLine:'#5a4630',metal:'#4a5a6b',accent:'#ffb547',ok:'#7fd18a',crate:'#c9a06a',crateDark:'#6b4d2a'},water:{sky:'#08151f',wall:'#0e2433',floor:'#102a3a',belt:'#14405c',beltLine:'#2e7aa8',metal:'#3a6b8a',accent:'#6fc3ff',ok:'#7fe0c8',crate:'#8fd3ff',crateDark:'#2e6ea8'}};
 let theme='factory', T=0, speed=1, playing=false, curStep=-1, data=null;
 const workers=[{x:180,dir:1,phase:0,tx:null},{x:520,dir:-1,phase:1,tx:null},{x:760,dir:1,phase:2,tx:null}];
-const particles=[], crates=[];
+const particles=[], crates=[], haulers=[];
+let lastActive=null, haulSpawn=0;
 function rr(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x|0,y|0,w|0,h|0);}
 function panelRect(x,y,w,h,base,edge){rr(x,y,w,h,base);rr(x,y,w,4,edge);rr(x,y+h-4,w,4,'#0b0f14');}
 function workerSprite(w,pal,active){
@@ -162,7 +163,28 @@ function frame(){
   belt();
   const activeId=curStep>=0&&data?data.steps[curStep].station:null;
   for(const s of ST) drawStation(s,s.id===activeId,pal);
-  // 工人走动（简单巡逻 + 搬箱子）
+  // 搬运工：当前车间变化时，从传送带抬一个箱子送过去
+  const actStation=activeId&&STBY[activeId]?STBY[activeId]:null;
+  if(actStation && lastActive!==activeId){ lastActive=activeId; haulSpawn=0; }
+  if(actStation && haulers.length<2 && (T-haulSpawn)>1.6){
+    haulers.push({x:actStation.x+40, y:556, tx:actStation.x+actStation.w/2, ty:actStation.y-6, phase:'to', carry:true, t:0});
+    haulSpawn=T;
+  }
+  for(let i=haulers.length-1;i>=0;i--){const h=haulers[i];
+    const dx=h.tx-h.x, dy=h.ty-h.y, d=Math.hypot(dx,dy);
+    if(d>3){h.x+=dx/d*1.6*speed;h.y+=dy/d*1.6*speed;h.t+=0.016*speed;
+      const bob=Math.sin(h.t*10)*1.2, leg=Math.sin(h.t*12)>0?1:-1, bx=h.x, by=h.y;
+      rr(bx-4,by-22+bob,8,11,'#4f7cff');rr(bx-3,by-33+bob,7,8,'#e8b48a');
+      rr(bx-6,by-11+bob,3,9,leg>0?'#2b3a55':'#223049');rr(bx+3,by-11+bob,3,9,leg>0?'#223049':'#2b3a55');
+      if(h.carry){rr(bx+5,by-20+bob,12,10,COL[theme].crate);rr(bx+5,by-20+bob,12,3,COL[theme].crateDark);}
+    } else {
+      if(h.carry){ h.carry=false; h.phase='unpack'; h.t=0;
+        for(let k=0;k<8;k++)particles.push({x:h.x,y:h.y-10,vx:(Math.random()-.5)*2,vy:-Math.random()*2,life:24,c:'rgba(255,214,120,'}); }
+      else if(h.t>0.9){haulers.splice(i,1);}
+      h.t+=0.016*speed;
+    }
+  }
+  // 工人走动（简单巡逻）
   workers.forEach((w,i)=>{
     const target=activeId&&STBY[activeId]?STBY[activeId].x+STBY[activeId].w/2-40:200+i*260;
     if(Math.abs(target-w.x)>6){w.x+=Math.sign(target-w.x)*1.2*speed;w.dir=Math.sign(target-w.x);}
@@ -204,5 +226,6 @@ loadSessions().then(async()=>{await loadSession();const q=new URLSearchParams(lo
   if(q.get('theme')==='water'){theme='water';el('theme').textContent='💧 水流';}
   if(q.get('step')){curStep=Number(q.get('step'));renderSteps();}
   if(q.get('play')){play();}});
+window.__dbg={get haulers(){return haulers.length},get T(){return T}};
 frame();
 </script></body></html>
