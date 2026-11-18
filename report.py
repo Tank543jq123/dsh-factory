@@ -38,6 +38,7 @@ def main():
     shots["factory"] = chrome(BASE + "/anim3d.html?step=16&play=1", os.path.join(OUT_DIR, "shot-factory.png"))
     shots["water"] = chrome(BASE + "/anim3d.html?step=24&play=1", os.path.join(OUT_DIR, "shot-water.png"))
     shots["arch"] = chrome(BASE + "/", os.path.join(OUT_DIR, "shot-arch.png"))
+    plugin_shot = os.path.join(OUT_DIR, "shot-plugin.png")
 
     skills = wk["skills"]["items"]
     sched = wk["routing"]["schedules"]
@@ -82,6 +83,8 @@ img{{width:100%;border:1px solid #22303f;border-radius:8px;margin-top:8px}}
 <li><b>数据层</b>：解析 <code>~/.dsh/sessions/**/session.v4.jsonl.zstd</code> 的真实事件（turn/start、user/message、system/message、step/start、assistant/message、tool/call、tool/result、step/end、request/context），映射为工位序列。证据：<code>{ROOT}/server.py</code>。</li>
 <li><b>动画层</b>：Canvas 等距（伪 3D）工厂——传送带滚动、3 个工人巡逻并搬箱子、机器（活塞/齿轮/火花/蒸汽/指示灯）各自运转；主题可切工厂/水流。证据：<code>{ROOT}/anim.html</code>。</li>
 <li><b>服务层</b>：systemd 常驻 <code>dsh-factory.service</code>，端口 {BASE.rsplit(':',1)[-1]}；接口 <code>/api/factory</code>（架构数据）、<code>/api/sessions</code>、<code>/api/session?id=</code>。</li>
+<li><b>插件化</b>：新增 dsh-factory 插件（`/home/tank543/src/dsh-factory-plugin`），在 DSH 左栏注册「🏭 工厂」入口，主面板用同源 `/dsh-factory/*` 代理加载动画页；服务端只做转发，页面里 `/api/` 自动改写为 `/dsh-factory/api/`。</li>
+<li><b>实时跟随</b>：页面支持 `?live=1`，每 5 秒拉取「最近活跃会话」并停在最新一步；也可选择任意历史会话回放。</li>
 <li><b>自检</b>：用 headless Chrome 多次截图验证渲染；两张不同时刻的截图字节不同，证明动画在跑（不是静态图）。</li>
 </ol>
 <h2>四、截图</h2>
@@ -94,6 +97,7 @@ img{{width:100%;border:1px solid #22303f;border-radius:8px;margin-top:8px}}
     html += img_tag(shots.get("factory"), "等距 3D（第 16 步）")
     html += img_tag(shots.get("water"), "等距 3D（第 24 步，另一时刻）")
     html += img_tag(shots.get("arch"), "架构页（SuperAgent 视角）")
+    html += img_tag(plugin_shot if os.path.exists(plugin_shot) else None, "已挂进 DSH 左栏的「工厂」面板（真实截图）")
     html += f"""
 <h2>五、收敛说明</h2><p style="color:#93a1b5;font-size:13px">此前并行产生了两个伪 3D 页面与两个一次性汇报定时器（3091/pixel3d 与 3092/anim3d）。现已收敛：<b>只保留 3092 的 anim3d 一个页面</b>，重复的 <code>dsh-pixel-factory.service</code> 与 <code>dsh-pixel-report-once.timer</code> 已 disable，明早只会有这一份 08:30 汇报（避免重复推送）。原 3091 的页面文件仍保留在 <code>~/.dsh/factory/</code> 作为历史记录，不再对外提供。</p>
 <h2>六、风险与局限</h2><div class="risk">

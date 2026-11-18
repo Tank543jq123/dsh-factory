@@ -587,6 +587,7 @@ function PixelBuilding({ node, active, skipped, done, error }) {
   return h('g', { className: 'df-pixel-only' },
     h('ellipse', { cx, cy: cy + 2, rx: w * 0.64, ry: 13, className: 'df-shadow' }),
     h('polygon', { points: `${topLeft} ${topPoint} ${topRight} ${topBottom}`, className: 'df-roof-3d' }),
+    h('polyline', { points: `${topLeft} ${topPoint} ${topRight}`, className: 'df-roof-hi' }),
     h('polygon', { points: leftFace, className: 'df-wall-left' }),
     h('polygon', { points: rightFace, className: 'df-wall-right' }),
     h('polygon', { points: sideFace, className: 'df-wall-side' }),
@@ -638,6 +639,7 @@ function WaterTank({ node, active, skipped, done, error }) {
     h('ellipse', { cx, cy: cy + 2, rx: w * 0.64, ry: 14, className: 'df-shadow' }),
     h('rect', { x: left, y: top, width: w, height: nh - 6, rx: radius, className: 'df-tank-3d' }),
     h('ellipse', { cx, cy: top, rx: w / 2, ry: 10, className: 'df-tank-top' }),
+    h('path', { d: `M${cx - w / 2 + 6} ${top} Q${cx} ${top - 8} ${cx + w / 2 - 6} ${top}`, className: 'df-tank-hi' }),
     h('path', { d: `M${left + 8} ${bottom - 24} Q${cx - 20} ${bottom - 32} ${cx} ${bottom - 24} T${left + w - 8} ${bottom - 24}`, className: 'df-water-line' }),
     h('rect', { x: left + w - 16, y: top + 14, width: 9, height: nh - 30, rx: 5, className: 'df-tank-gauge' }),
     h('circle', { cx: left + 20, cy: top + 26, r: 4, className: 'df-bubble' }),
@@ -686,8 +688,8 @@ function ModelExtras({ node, active, theme }) {
 
 function Bookshelf({ x, y, theme }) {
   const books = theme === 'water'
-    ? ['#7dd3fc', '#43e0c4', '#b9efff', '#54c8ff', '#2f8fbd']
-    : ['#f3b34b', '#c05a3e', '#6ee7a8', '#9aa3b2', '#f5b84b']
+    ? ['#a9c7c1', '#8fb0a8', '#d8e8e2', '#7fa9a1', '#4f7a78']
+    : ['#c19a5b', '#9a6f3f', '#8fb0a8', '#9aa3b2', '#c19a5b']
   return h('g', { transform: `translate(${x} ${y})`, className: 'df-bookshelf' },
     h('rect', { x: -16, y: -22, width: 32, height: 40, rx: 2, className: 'df-shelf-frame' }),
     [0, 1, 2].map((row) => h('g', { key: row },
@@ -793,6 +795,86 @@ function Station({ node, view, display, playing, stepMode, selected, onSelect, t
   )
 }
 
+function Crate({ x, y, scale = 1, theme }) {
+  const w = 26 * scale
+  const h = 16 * scale
+  const d = 10 * scale
+  return h('g', { transform: `translate(${x} ${y})`, className: `df-crate ${theme === 'water' ? 'df-crate-water' : ''}` },
+    h('polygon', { points: `0,${-h - d / 2} ${w / 2},${-h} 0,${-h + d / 2} ${-w / 2},${-h}`, className: 'df-crate-top' }),
+    h('polygon', { points: `${-w / 2},${-h} 0,${-h + d / 2} 0,${d / 2} ${-w / 2},0`, className: 'df-crate-left' }),
+    h('polygon', { points: `0,${-h + d / 2} ${w / 2},${-h} ${w / 2},0 0,${d / 2}`, className: 'df-crate-right' }),
+    h('line', { x1: 0, y1: -h - d / 2, x2: 0, y2: d / 2, className: 'df-crate-line' }),
+  )
+}
+
+function Barrel({ x, y, theme }) {
+  return h('g', { transform: `translate(${x} ${y})`, className: `df-barrel ${theme === 'water' ? 'df-barrel-water' : ''}` },
+    h('ellipse', { cx: 0, cy: 2, rx: 9, ry: 3, className: 'df-barrel-shadow' }),
+    h('rect', { x: -8, y: -20, width: 16, height: 20, rx: 4, className: 'df-barrel-body' }),
+    h('ellipse', { cx: 0, cy: -20, rx: 8, ry: 3, className: 'df-barrel-top' }),
+    h('line', { x1: -8, y1: -14, x2: 8, y2: -14, className: 'df-barrel-band' }),
+    h('line', { x1: -8, y1: -6, x2: 8, y2: -6, className: 'df-barrel-band' }),
+  )
+}
+
+function Lamp({ x, y, theme }) {
+  return h('g', { transform: `translate(${x} ${y})`, className: `df-lamp ${theme === 'water' ? 'df-lamp-water' : ''}` },
+    h('circle', { cx: 0, cy: -26, r: 16, className: 'df-lamp-glow' }),
+    h('line', { x1: 0, y1: 0, x2: 0, y2: -26, className: 'df-lamp-pole' }),
+    h('rect', { x: -3, y: -30, width: 6, height: 5, rx: 1, className: 'df-lamp-head' }),
+  )
+}
+
+function Decor({ theme }) {
+  const crates = [
+    { x: 150, y: 382, s: 1.1 },
+    { x: 185, y: 370, s: 0.8 },
+    { x: 890, y: 520, s: 1.0 },
+    { x: 920, y: 508, s: 0.75 },
+    { x: 700, y: 515, s: 0.9 },
+    { x: 310, y: 500, s: 0.8 },
+  ]
+  const barrels = [
+    { x: 716, y: 494 },
+    { x: 738, y: 506 },
+    { x: 900, y: 548 },
+    { x: 206, y: 426 },
+  ]
+  const lamps = [
+    { x: 300, y: 360 },
+    { x: 548, y: 300 },
+    { x: 900, y: 410 },
+    { x: 206, y: 420 },
+  ]
+  return h('g', { className: 'df-decor' },
+    h('g', { className: 'df-far-silhouette' },
+      h('polygon', { points: '120,250 180,220 250,245 190,275' }),
+      h('polygon', { points: '700,190 770,155 850,190 780,225' }),
+      h('polygon', { points: '400,110 450,85 510,110 460,135' }),
+      h('polygon', { points: '830,120 880,95 940,120 890,145' }),
+    ),
+    h('g', { className: 'df-ground-patches' },
+      h('ellipse', { cx: 300, cy: 360, rx: 110, ry: 34 }),
+      h('ellipse', { cx: 700, cy: 300, rx: 150, ry: 42 }),
+      h('ellipse', { cx: 520, cy: 470, rx: 120, ry: 30 }),
+    ),
+    theme === 'water'
+      ? h('g', { className: 'df-puddles' },
+          h('ellipse', { cx: 320, cy: 392, rx: 90, ry: 20 }),
+          h('ellipse', { cx: 700, cy: 238, rx: 120, ry: 26 }),
+          h('ellipse', { cx: 470, cy: 508, rx: 80, ry: 16 }),
+        )
+      : h('g', { className: 'df-grass' },
+          [[250, 330], [280, 344], [470, 300], [520, 330], [650, 350], [880, 460], [190, 450], [380, 520], [610, 520]].map(([x, y], index) =>
+            h('path', { key: index, d: `M${x} ${y} l-3 -8 M${x} ${y} l0 -10 M${x} ${y} l4 -7`, className: 'df-grass-tuft' }),
+          ),
+        ),
+    crates.map((item, index) => h(Crate, { key: `c${index}`, x: item.x, y: item.y, scale: item.s, theme })),
+    barrels.map((item, index) => h(Barrel, { key: `b${index}`, x: item.x, y: item.y, theme })),
+    lamps.map((item, index) => h(Lamp, { key: `l${index}`, x: item.x, y: item.y, theme })),
+  )
+}
+
 /* ------------------------------------------------------------------ */
 /* Conveyor / pipe edges                                               */
 /* ------------------------------------------------------------------ */
@@ -842,6 +924,7 @@ function BoxArt({ stage, skill, theme, active }) {
   return h('g', { className: 'df-box-art' },
     active ? h('ellipse', { cx: 0, cy: 6, rx: 38, ry: 12, className: 'df-box-glow-3d' }) : null,
     h('polygon', { points: top, className: `df-box-top ${theme === 'water' ? 'df-box-top-water' : ''}` }),
+    h('polyline', { points: `0,${-bh - d / 2} ${w / 2},${-bh} 0,${-bh + d / 2}`, className: 'df-box-hi' }),
     h('polygon', { points: left, className: `df-box-left ${theme === 'water' ? 'df-box-left-water' : ''}` }),
     h('polygon', { points: right, className: `df-box-right ${theme === 'water' ? 'df-box-right-water' : ''}` }),
     h('polygon', { points: `-4,${-bh - d / 2} 4,${-bh - d / 2} 4,${-bh + d / 2} -4,${-bh + d / 2}`, className: 'df-box-tape-top' }),
@@ -1335,9 +1418,23 @@ function FactoryBoard({ view, liveRunning, livePhase, theme, setTheme, speed, se
             h('stop', { offset: '0%', stopColor: 'currentColor', stopOpacity: 0.18 }),
             h('stop', { offset: '100%', stopColor: 'currentColor', stopOpacity: 0 }),
           ),
+          h('radialGradient', { id: 'df-vignette', cx: '50%', cy: '46%', r: '72%' },
+            h('stop', { offset: '58%', stopColor: '#1b1a18', stopOpacity: 0 }),
+            h('stop', { offset: '100%', stopColor: '#1b1a18', stopOpacity: 0.62 }),
+          ),
+          h('linearGradient', { id: 'df-fog', x1: '0', y1: '0', x2: '0', y2: '1' },
+            h('stop', { offset: '0%', stopColor: '#ece6d8', stopOpacity: 0 }),
+            h('stop', { offset: '78%', stopColor: '#ece6d8', stopOpacity: 0 }),
+            h('stop', { offset: '100%', stopColor: '#ece6d8', stopOpacity: 0.06 }),
+          ),
+          h('radialGradient', { id: 'df-light', cx: '50%', cy: '40%', r: '60%' },
+            h('stop', { offset: '0%', stopColor: '#c19a5b', stopOpacity: 0.14 }),
+            h('stop', { offset: '100%', stopColor: '#c19a5b', stopOpacity: 0 }),
+          ),
         ),
         h('rect', { x: 0, y: 0, width: 1000, height: 560, className: 'df-floor' }),
         h(IsoFloor, { theme }),
+        h(Decor, { theme }),
         EDGES.map((edge) => h(Edge, {
           key: edge.id,
           edge,
@@ -1372,6 +1469,8 @@ function FactoryBoard({ view, liveRunning, livePhase, theme, setTheme, speed, se
           carrying: false,
         })),
         h(MaterialBox, { display, view, theme, active }),
+        h('rect', { x: 0, y: 0, width: 1000, height: 560, className: 'df-vignette', 'pointer-events': 'none' }),
+        h('rect', { x: 0, y: 0, width: 1000, height: 560, className: 'df-fog', 'pointer-events': 'none' }),
       ),
       display?.workshop === 'skill' && active
         ? h(SkillScan, { libraryValue, skill, theme })
@@ -1566,30 +1665,51 @@ exports.apply = apply
 
 const CSS = `
 .df-root {
-  --df-bg: var(--dsw-alias-bg-base, #101216);
-  --df-panel: var(--dsw-specific-menu, #181c24);
-  --df-panel-2: color-mix(in srgb, var(--dsw-specific-menu, #181c24) 80%, #000 20%);
-  --df-line: color-mix(in srgb, var(--dsw-alias-label-primary, #eef1f7) 15%, transparent);
-  --df-text: var(--dsw-alias-label-primary, #eef1f7);
-  --df-muted: var(--dsw-alias-label-tertiary, #9aa3b2);
-  --df-faint: color-mix(in srgb, var(--dsw-alias-label-tertiary, #9aa3b2) 55%, transparent);
-  --df-accent: var(--dsw-alias-state-business-primary, #5b9dff);
-  --df-green: #3ddc97;
-  --df-amber: #f5b84b;
-  --df-red: #ff6b6b;
+  --df-bg: #1b1a18;
+  --df-panel: #24221e;
+  --df-panel-2: #1f1d19;
+  --df-line: #3f3a33;
+  --df-text: #e8e2d4;
+  --df-muted: #a39b8c;
+  --df-faint: #6f695d;
+  --df-accent: #c19a5b;
+  --df-green: #8fb0a8;
+  --df-amber: #d6b06a;
+  --df-red: #a85f3d;
   --df-radius: 10px;
+  --df-ink: #26231f;
+  --df-deep: #34312b;
+  --df-steel: #47433b;
+  --df-steel-2: #5a554b;
+  --df-warm: #6f695d;
+  --df-wood-dark: #6b4f36;
+  --df-wood: #8a6644;
+  --df-wood-light: #a98356;
+  --df-brass-dark: #9a6f3f;
+  --df-brass: #c19a5b;
+  --df-cream: #e0cfa7;
+  --df-steam: #ece6d8;
+  --df-rust: #a85f3d;
+  --df-teal: #5f827c;
+  --df-teal-light: #8fb0a8;
+  --df-stroke-wood: #3c2c20;
+  --df-stroke-steel: #35312b;
+  --df-shadow: #141310;
   position: relative;
   color: var(--df-text);
   font-family: var(--dsw-font-family, Inter, system-ui, sans-serif);
-  background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--df-accent) 8%, transparent), transparent 62%), var(--df-bg);
+  background:
+    radial-gradient(ellipse at 50% 34%, rgba(193,154,91,.10), transparent 58%),
+    radial-gradient(ellipse at 50% 100%, rgba(236,230,216,.045), transparent 62%),
+    var(--df-bg);
   border: 1px solid var(--df-line);
   border-radius: var(--df-radius);
   overflow: hidden;
   box-sizing: border-box;
 }
 .df-root * { box-sizing: border-box; }
-.df-theme-pixel { --df-accent: #f3b34b; --df-green: #6ee7a8; --df-amber: #ffd166; --df-shadow: #080604; }
-.df-theme-water { --df-accent: #54c8ff; --df-green: #43e0c4; --df-amber: #7dd3fc; --df-shadow: #030a12; }
+.df-theme-pixel { --df-accent: #c19a5b; --df-green: #8fb0a8; --df-amber: #d6b06a; --df-shadow: #080604; }
+.df-theme-water { --df-accent: #7fa9a1; --df-green: #8fb0a8; --df-amber: #a9c7c1; --df-shadow: #030a12; }
 .df-paused * { animation-play-state: paused !important; }
 
 /* Toolbar */
@@ -1639,14 +1759,14 @@ const CSS = `
 
 /* Station 3D bodies */
 .df-shadow { fill: var(--df-shadow); opacity: .55; filter: blur(1px); }
-.df-roof-3d { fill: #4a3525; stroke: #1c1612; stroke-width: 1.6; }
-.df-wall-left { fill: #2c221b; stroke: #5b3e2b; stroke-width: 1.5; }
-.df-wall-right { fill: #3a2c22; stroke: #5b3e2b; stroke-width: 1.5; }
+.df-roof-3d { fill: #4a3525; stroke: #3c2c20; stroke-width: 1.6; }
+.df-wall-left { fill: #3a2f25; stroke: #5b3e2b; stroke-width: 1.5; }
+.df-wall-right { fill: #4a3c2e; stroke: #5b3e2b; stroke-width: 1.5; }
 .df-wall-side { fill: #1d1611; stroke: #4a2f1e; stroke-width: 1.5; }
-.df-window-3d { fill: #f3b34b; opacity: .78; }
-.df-door-3d { fill: #15100d; stroke: #6b4a32; stroke-width: 1.2; }
-.df-chimney-3d { fill: #3b2a20; stroke: #1c1612; stroke-width: 1.4; }
-.df-plinth { fill: #17120f; opacity: .9; }
+.df-window-3d { fill: #c19a5b; opacity: .78; }
+.df-door-3d { fill: #2f2720; stroke: #6b4f36; stroke-width: 1.2; }
+.df-chimney-3d { fill: #4a3c2e; stroke: #3c2c20; stroke-width: 1.4; }
+.df-plinth { fill: #2f2720; opacity: .9; }
 .df-station.df-active .df-roof-3d,
 .df-station.df-active .df-wall-left,
 .df-station.df-active .df-wall-right { filter: drop-shadow(0 0 7px color-mix(in srgb, var(--df-accent) 70%, transparent)); }
@@ -1661,29 +1781,29 @@ const CSS = `
 .df-smoke circle:nth-child(2) { animation-delay: .45s; }
 .df-smoke circle:nth-child(3) { animation-delay: .9s; }
 .df-piston-rod { fill: #9aa3b2; transform-box: fill-box; transform-origin: bottom center; }
-.df-piston-head { fill: #f3b34b; }
+.df-piston-head { fill: #c19a5b; }
 .df-piston.df-on .df-piston-rod { animation: df-piston 1.2s ease-in-out infinite; }
-.df-arm-base { fill: #6b4a32; }
-.df-arm-boom { fill: #f3b34b; transform-box: fill-box; transform-origin: right center; }
-.df-arm-joint { fill: #1b1f27; stroke: #f3b34b; stroke-width: 1.5; }
+.df-arm-base { fill: #6b4f36; }
+.df-arm-boom { fill: #c19a5b; transform-box: fill-box; transform-origin: right center; }
+.df-arm-joint { fill: #1b1f27; stroke: #c19a5b; stroke-width: 1.5; }
 .df-robot-arm.df-on .df-arm-boom { animation: df-arm 1.5s ease-in-out infinite; }
-.df-crane-mast { fill: #6b4a32; }
-.df-crane-boom { fill: #f3b34b; }
+.df-crane-mast { fill: #6b4f36; }
+.df-crane-boom { fill: #c19a5b; }
 .df-crane-hook { fill: #9aa3b2; transform-box: fill-box; transform-origin: top center; }
 .df-crane.df-on .df-crane-hook { animation: df-crane 1.6s ease-in-out infinite; }
 
 /* Water tank 3D */
-.df-tank-3d { fill: color-mix(in srgb, var(--df-accent) 22%, #0b2333); stroke: color-mix(in srgb, var(--df-accent) 65%, #fff 8%); stroke-width: 1.8; }
+.df-tank-3d { fill: color-mix(in srgb, var(--df-accent) 22%, #22383a); stroke: color-mix(in srgb, var(--df-accent) 65%, #fff 8%); stroke-width: 1.8; }
 .df-tank-top { fill: color-mix(in srgb, var(--df-accent) 48%, #dff7ff 20%); stroke: color-mix(in srgb, var(--df-accent) 70%, #fff 10%); stroke-width: 1.4; }
-.df-water-line { fill: none; stroke: #9fe3ff; stroke-width: 2; opacity: .55; }
+.df-water-line { fill: none; stroke: #c9ddd6; stroke-width: 2; opacity: .55; }
 .df-tank-gauge { fill: color-mix(in srgb, var(--df-accent) 30%, transparent); stroke: color-mix(in srgb, var(--df-accent) 50%, transparent); stroke-width: 1; }
 .df-valve { fill: var(--df-panel); stroke: var(--df-accent); stroke-width: 2; }
 .df-valve-line { stroke: var(--df-accent); stroke-width: 2; }
-.df-pipe-out { fill: none; stroke: color-mix(in srgb, var(--df-accent) 55%, #0b2333); stroke-width: 9; stroke-linecap: round; }
-.df-bubble { fill: #d8f4ff; opacity: .55; animation: df-bubble 2.8s ease-in-out infinite; }
+.df-pipe-out { fill: none; stroke: color-mix(in srgb, var(--df-accent) 55%, #22383a); stroke-width: 9; stroke-linecap: round; }
+.df-bubble { fill: #dcebe6; opacity: .55; animation: df-bubble 2.8s ease-in-out infinite; }
 .df-bubble-b { animation-delay: .7s; }
 .df-bubble-c { animation-delay: 1.3s; }
-.df-bubbles circle { fill: #d8f4ff; opacity: .5; animation: df-bubble 1.8s ease-in-out infinite; }
+.df-bubbles circle { fill: #dcebe6; opacity: .5; animation: df-bubble 1.8s ease-in-out infinite; }
 .df-bubbles circle:nth-child(2) { animation-delay: .5s; }
 .df-turbine-ring { fill: none; stroke: var(--df-accent); stroke-width: 2; opacity: .55; }
 .df-turbine-water { fill: none; stroke: var(--df-accent); stroke-width: 3; opacity: .35; }
@@ -1708,10 +1828,10 @@ const CSS = `
 .df-check { fill: var(--df-green); font-size: 14px; font-weight: 800; }
 
 /* Conveyor / pipes */
-.df-belt-shadow { fill: none; stroke: #050403; stroke-width: 24; stroke-linecap: round; stroke-linejoin: round; opacity: .45; transform: translate(3px, 7px); }
+.df-belt-shadow { fill: none; stroke: #171512; stroke-width: 24; stroke-linecap: round; stroke-linejoin: round; opacity: .45; transform: translate(3px, 7px); }
 .df-belt-side { fill: none; stroke: #3a2a1c; stroke-width: 19; stroke-linecap: round; stroke-linejoin: round; }
-.df-belt-top { fill: none; stroke: #6b4a32; stroke-width: 14; stroke-linecap: round; stroke-linejoin: round; }
-.df-belt-slats { fill: none; stroke: #241c16; stroke-width: 12; stroke-dasharray: 2 12; animation: df-belt 1.3s linear infinite; stroke-linecap: butt; }
+.df-belt-top { fill: none; stroke: #6b4f36; stroke-width: 14; stroke-linecap: round; stroke-linejoin: round; }
+.df-belt-slats { fill: none; stroke: #3a2f25; stroke-width: 12; stroke-dasharray: 2 12; animation: df-belt 1.3s linear infinite; stroke-linecap: butt; }
 .df-edge-flow { fill: none; stroke: transparent; stroke-width: 3; stroke-linecap: round; }
 .df-edge-dashed .df-belt-top { stroke-dasharray: 8 7; opacity: .75; }
 .df-edge-active .df-belt-top { stroke: var(--df-accent); filter: drop-shadow(0 0 5px color-mix(in srgb, var(--df-accent) 65%, transparent)); }
@@ -1722,55 +1842,55 @@ const CSS = `
 .df-edge-skip .df-belt-top { stroke: var(--df-amber); stroke-dasharray: 7 7; }
 .df-edge-label { fill: var(--df-faint); font-size: 8.5px; letter-spacing: .04em; paint-order: stroke; stroke: var(--df-bg); stroke-width: 2.5px; }
 .df-theme-water .df-belt-shadow { stroke-width: 28; }
-.df-theme-water .df-belt-side { stroke: #0d3045; stroke-width: 23; }
-.df-theme-water .df-belt-top { stroke: color-mix(in srgb, var(--df-accent) 48%, #0d3045); stroke-width: 16; }
-.df-theme-water .df-belt-slats { stroke: #b9efff; stroke-width: 3; stroke-dasharray: 5 15; opacity: .6; }
-.df-theme-water .df-edge-flow { stroke: #b9efff; }
+.df-theme-water .df-belt-side { stroke: #1d3438; stroke-width: 23; }
+.df-theme-water .df-belt-top { stroke: color-mix(in srgb, var(--df-accent) 48%, #1d3438); stroke-width: 16; }
+.df-theme-water .df-belt-slats { stroke: #d8e8e2; stroke-width: 3; stroke-dasharray: 5 15; opacity: .6; }
+.df-theme-water .df-edge-flow { stroke: #d8e8e2; }
 
 /* Workers */
 .df-worker-seat { transition: transform .55s cubic-bezier(.4,0,.2,1); }
 .df-worker-shadow { fill: #000; opacity: .35; }
-.df-worker-head { fill: #f1c27d; }
-.df-worker-torso { fill: #4a7dbd; stroke: #1d3450; stroke-width: 1; }
-.df-worker-arm, .df-worker-leg { fill: #3a5f8f; transform-box: fill-box; transform-origin: center top; }
-.df-worker-helmet { fill: #f3b34b; stroke: #8a5a0c; stroke-width: .8; }
-.df-worker-carry { fill: #b9793f; stroke: #4a2a12; stroke-width: 1; }
+.df-worker-head { fill: #c19a5b; }
+.df-worker-torso { fill: #6f9e9a; stroke: #3c4a48; stroke-width: 1; }
+.df-worker-arm, .df-worker-leg { fill: #5f827c; transform-box: fill-box; transform-origin: center top; }
+.df-worker-helmet { fill: #c19a5b; stroke: #8a5a0c; stroke-width: .8; }
+.df-worker-carry { fill: #a98356; stroke: #5a3b28; stroke-width: 1; }
 .df-worker[data-walking="1"] .df-leg-l { animation: df-leg-a .42s ease-in-out infinite; }
 .df-worker[data-walking="1"] .df-leg-r { animation: df-leg-b .42s ease-in-out infinite; }
 .df-worker[data-walking="1"] .df-arm-l { animation: df-arm-a .42s ease-in-out infinite; }
 .df-worker[data-walking="1"] .df-arm-r { animation: df-arm-b .42s ease-in-out infinite; }
 .df-worker[data-active="1"] .df-arm-r { animation: df-hammer .52s ease-in-out infinite; }
-.df-theme-water .df-worker-torso { fill: #2f8fbd; stroke: #0b3045; }
-.df-theme-water .df-worker-arm, .df-theme-water .df-worker-leg { fill: #256f96; }
-.df-theme-water .df-worker-helmet { fill: #7dd3fc; stroke: #0b4b6b; }
+.df-theme-water .df-worker-torso { fill: #4f7a78; stroke: #1d3438; }
+.df-theme-water .df-worker-arm, .df-theme-water .df-worker-leg { fill: #4f7a78; }
+.df-theme-water .df-worker-helmet { fill: #a9c7c1; stroke: #2f4f52; }
 
 /* Material box 3D */
 .df-box { transition: transform .55s cubic-bezier(.4,0,.2,1); }
 .df-box-animate { will-change: transform; }
-.df-box-top { fill: #d79a5b; stroke: #4a2a12; stroke-width: 1.8; }
-.df-box-left { fill: #a86a35; stroke: #4a2a12; stroke-width: 1.8; }
-.df-box-right { fill: #8a5527; stroke: #4a2a12; stroke-width: 1.8; }
-.df-box-top-water { fill: #9fe3ff; stroke: #1a5c8a; }
-.df-box-left-water { fill: #57b8e8; stroke: #1a5c8a; }
-.df-box-right-water { fill: #2f7fa8; stroke: #1a5c8a; }
-.df-box-tape-top { fill: #e8d7a8; opacity: .92; }
-.df-box-tape-face { fill: #d8c08e; opacity: .92; }
-.df-box-window { fill: #f3b34b; opacity: .65; }
-.df-box-bubble { fill: #e6f9ff; opacity: .65; }
+.df-box-top { fill: #a98356; stroke: #5a3b28; stroke-width: 1.8; }
+.df-box-left { fill: #8a6644; stroke: #5a3b28; stroke-width: 1.8; }
+.df-box-right { fill: #6b4f36; stroke: #5a3b28; stroke-width: 1.8; }
+.df-box-top-water { fill: #c9ddd6; stroke: #2f4f52; }
+.df-box-left-water { fill: #57b8e8; stroke: #2f4f52; }
+.df-box-right-water { fill: #2f7fa8; stroke: #2f4f52; }
+.df-box-tape-top { fill: #e0cfa7; opacity: .92; }
+.df-box-tape-face { fill: #c9b98f; opacity: .92; }
+.df-box-window { fill: #c19a5b; opacity: .65; }
+.df-box-bubble { fill: #eef5f1; opacity: .65; }
 .df-box-bubble-b { opacity: .4; }
 .df-box-port { fill: #1b1f27; stroke: var(--df-accent); stroke-width: 2; }
-.df-box-paper { fill: #f4efe2; stroke: #9b8a6b; stroke-width: 1; }
+.df-box-paper { fill: #ece6d8; stroke: #9a8f7a; stroke-width: 1; }
 .df-box-caption { fill: var(--df-muted); font-size: 8.5px; letter-spacing: .03em; paint-order: stroke; stroke: var(--df-bg); stroke-width: 2.4px; }
 .df-box-glow-3d { fill: var(--df-accent); opacity: .2; filter: blur(5px); animation: df-glow 1.2s ease-in-out infinite; }
-.df-flap-left, .df-flap-right { fill: #c98b4b; stroke: #4a2a12; stroke-width: 1.4; transform-box: fill-box; }
+.df-flap-left, .df-flap-right { fill: #c98b4b; stroke: #5a3b28; stroke-width: 1.4; transform-box: fill-box; }
 .df-box-open .df-flap-left { animation: df-flap-l 0.9s ease-out both; transform-origin: right bottom; }
 .df-box-open .df-flap-right { animation: df-flap-r 0.9s ease-out both; transform-origin: left bottom; }
-.df-sticker-bg { fill: #ffd166; stroke: #9a6b0a; stroke-width: 1; }
-.df-sticker-text { fill: #3a2a05; font-size: 7.5px; font-weight: 700; }
-.df-barcode line { stroke: #2b2117; stroke-width: 1.6; }
+.df-sticker-bg { fill: #d6b06a; stroke: #8a6a2f; stroke-width: 1; }
+.df-sticker-text { fill: #3a2f25; font-size: 7.5px; font-weight: 700; }
+.df-barcode line { stroke: #3a2f25; stroke-width: 1.6; }
 .df-stamp circle { fill: none; stroke: var(--df-green); stroke-width: 2; }
 .df-stamp text { fill: var(--df-green); font-size: 7px; font-weight: 800; letter-spacing: .06em; }
-.df-tape-seal { fill: #e8d7a8; transform-box: fill-box; transform-origin: left center; animation: df-seal .8s .15s ease-out both; }
+.df-tape-seal { fill: #e0cfa7; transform-box: fill-box; transform-origin: left center; animation: df-seal .8s .15s ease-out both; }
 .df-model-fx { color: var(--df-accent); }
 .df-gear { color: var(--df-accent); opacity: .85; transform-box: fill-box; transform-origin: center; }
 .df-active .df-gear-a { animation: df-spin 2.4s linear infinite; }
@@ -1795,18 +1915,18 @@ const CSS = `
 .df-skill-beam { position: absolute; left: 12px; right: 12px; height: 2px; top: 30px; background: linear-gradient(90deg, transparent, var(--df-accent), transparent); animation: df-beam 1.4s ease-in-out infinite; }
 .df-skill-shelf { display: flex; flex-direction: column; gap: 5px; position: relative; z-index: 1; }
 .df-skill-lib { display: flex; align-items: center; gap: 8px; padding: 4px 7px; border-radius: 6px; border: 1px solid var(--df-line); background: color-mix(in srgb, var(--df-bg) 70%, transparent); font-size: 10px; animation: df-lib-scan 1.4s ease-in-out both; }
-.df-skill-lib.df-hit { border-color: #ffd166; background: color-mix(in srgb, #ffd166 14%, transparent); box-shadow: 0 0 0 1px #ffd166 inset; }
+.df-skill-lib.df-hit { border-color: #d6b06a; background: color-mix(in srgb, #d6b06a 14%, transparent); box-shadow: 0 0 0 1px #d6b06a inset; }
 .df-skill-lib.df-placeholder { opacity: .45; }
 .df-skill-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--df-muted); flex: none; }
-.df-skill-lib.df-hit .df-skill-dot { background: #ffd166; box-shadow: 0 0 8px #ffd166; }
+.df-skill-lib.df-hit .df-skill-dot { background: #d6b06a; box-shadow: 0 0 8px #d6b06a; }
 .df-skill-lib-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .df-skill-lib-count { color: var(--df-muted); font-size: 9px; flex: none; }
 .df-skill-book { position: absolute; right: 20px; top: -26px; width: 34px; height: 26px; transform: translateY(10px) scale(.7); opacity: 0; animation: df-book-out 1.6s ease-out forwards; }
-.df-book-cover { position: absolute; inset: 0; border-radius: 3px 6px 6px 3px; background: #c05a3e; border: 1px solid #6d2d1c; }
-.df-book-page { position: absolute; right: 2px; top: 3px; width: 14px; height: 20px; background: #f7f1df; border: 1px solid #b9a98a; transform-origin: left center; animation: df-page 1.5s ease-in-out infinite; }
+.df-book-cover { position: absolute; inset: 0; border-radius: 3px 6px 6px 3px; background: #9a6f3f; border: 1px solid #5a3b28; }
+.df-book-page { position: absolute; right: 2px; top: 3px; width: 14px; height: 20px; background: #ece6d8; border: 1px solid #9a8f7a; transform-origin: left center; animation: df-page 1.5s ease-in-out infinite; }
 .df-book-page-b { animation-delay: .18s; }
-.df-skill-sticker { margin-top: 7px; display: inline-flex; align-items: center; gap: 5px; background: #ffd166; color: #3a2a05; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 3px; transform: rotate(-2deg); animation: df-sticker-in .5s .9s ease-out both; }
-.df-skill-sticker-pin { width: 5px; height: 5px; border-radius: 50%; background: #b4790b; }
+.df-skill-sticker { margin-top: 7px; display: inline-flex; align-items: center; gap: 5px; background: #d6b06a; color: #3a2f25; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 3px; transform: rotate(-2deg); animation: df-sticker-in .5s .9s ease-out both; }
+.df-skill-sticker-pin { width: 5px; height: 5px; border-radius: 50%; background: #8a6a2f; }
 .df-window-bar { display: flex; align-items: center; gap: 4px; padding-bottom: 6px; border-bottom: 1px solid var(--df-line); margin-bottom: 6px; }
 .df-window-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--df-muted); opacity: .5; }
 .df-window-title { margin-left: auto; font-size: 9px; color: var(--df-accent); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
@@ -1857,7 +1977,7 @@ const CSS = `
 .df-library-row b { color: var(--df-accent); }
 .df-chip-row { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
 .df-chip { font-size: 9.5px; padding: 2px 6px; border-radius: 999px; border: 1px solid var(--df-line); }
-.df-chip-skill { color: #ffd166; border-color: color-mix(in srgb, #ffd166 50%, transparent); background: color-mix(in srgb, #ffd166 10%, transparent); }
+.df-chip-skill { color: #d6b06a; border-color: color-mix(in srgb, #d6b06a 50%, transparent); background: color-mix(in srgb, #d6b06a 10%, transparent); }
 .df-tool-list, .df-file-list, .df-sub-list, .df-config-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .df-tool-list li { display: flex; gap: 6px; align-items: flex-start; }
 .df-tool-status { width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--df-line); display: grid; place-items: center; font-size: 9px; flex: none; }
@@ -1925,14 +2045,14 @@ const CSS = `
 .df-compact .df-details { width: 300px; }
 
 /* Bookshelf / patrol / unbox sparks */
-.df-shelf-frame { fill: #1b1410; stroke: #6b4a32; stroke-width: 1.4; }
-.df-shelf-board { fill: #6b4a32; }
+.df-shelf-frame { fill: #2f2720; stroke: #6b4f36; stroke-width: 1.4; }
+.df-shelf-board { fill: #6b4f36; }
 .df-shelf-book { opacity: .9; }
-.df-theme-water .df-shelf-frame { fill: #0a2636; stroke: #2f8fbd; }
-.df-theme-water .df-shelf-board { fill: #2f8fbd; }
+.df-theme-water .df-shelf-frame { fill: #0a2636; stroke: #4f7a78; }
+.df-theme-water .df-shelf-board { fill: #4f7a78; }
 .df-skill-hit {
   display: inline-block; margin: 0 0 6px; padding: 2px 8px; border-radius: 4px;
-  background: #ffd166; color: #3a2a05; font-size: 10px; font-weight: 800;
+  background: #d6b06a; color: #3a2f25; font-size: 10px; font-weight: 800;
   transform: rotate(-1.5deg); animation: df-sticker-in .45s .9s ease-out both;
 }
 .df-unbox-sparks line { stroke: var(--df-amber); stroke-width: 2; stroke-linecap: round; animation: df-spark .75s ease-out infinite; }
@@ -1943,6 +2063,34 @@ const CSS = `
   0% { transform: translate(var(--df-patrol-x1), var(--df-patrol-y1)); }
   100% { transform: translate(var(--df-patrol-x2), var(--df-patrol-y2)); }
 }
+/* Environment decor */
+.df-far-silhouette polygon { fill: var(--df-deep); opacity: .26; }
+.df-ground-patches ellipse { fill: var(--df-wood-dark); opacity: .12; }
+.df-grass-tuft { stroke: var(--df-teal); stroke-width: 1; opacity: .32; fill: none; }
+.df-puddles ellipse { fill: var(--df-teal); opacity: .14; }
+.df-crate-top { fill: var(--df-wood-light); stroke: var(--df-stroke-wood); stroke-width: 1.2; }
+.df-crate-left { fill: var(--df-wood); stroke: var(--df-stroke-wood); stroke-width: 1.2; }
+.df-crate-right { fill: var(--df-wood-dark); stroke: var(--df-stroke-wood); stroke-width: 1.2; }
+.df-crate-line { stroke: var(--df-cream); stroke-width: 1; opacity: .28; }
+.df-crate-water .df-crate-top { fill: var(--df-teal-light); }
+.df-crate-water .df-crate-left { fill: var(--df-teal); }
+.df-crate-water .df-crate-right { fill: #3f5f5c; }
+.df-barrel-shadow { fill: var(--df-shadow); opacity: .4; }
+.df-barrel-body { fill: var(--df-steel-2); stroke: var(--df-stroke-steel); stroke-width: 1.2; }
+.df-barrel-top { fill: var(--df-warm); stroke: var(--df-stroke-steel); stroke-width: 1; }
+.df-barrel-band { stroke: var(--df-brass-dark); stroke-width: 1.4; opacity: .8; }
+.df-barrel-water .df-barrel-body { fill: var(--df-teal); }
+.df-barrel-water .df-barrel-top { fill: var(--df-teal-light); }
+.df-lamp-glow { fill: var(--df-brass); opacity: .12; }
+.df-lamp-pole { stroke: var(--df-stroke-steel); stroke-width: 2; }
+.df-lamp-head { fill: var(--df-cream); stroke: var(--df-stroke-steel); stroke-width: 1; }
+.df-lamp-water .df-lamp-glow { fill: var(--df-teal-light); opacity: .14; }
+.df-vignette { fill: url(#df-vignette); }
+.df-fog { fill: url(#df-fog); }
+.df-roof-hi { fill: none; stroke: var(--df-cream); stroke-width: 1.2; opacity: .28; }
+.df-tank-hi { fill: none; stroke: var(--df-steam); stroke-width: 1.4; opacity: .32; }
+.df-box-hi { fill: none; stroke: var(--df-cream); stroke-width: 1.2; opacity: .34; }
+.df-shadow { fill: var(--df-shadow); opacity: .36; filter: blur(2px); }
 /* Keyframes */
 @keyframes df-flow { to { stroke-dashoffset: -18; } }
 @keyframes df-spin { to { transform: rotate(360deg); } }

@@ -25,6 +25,8 @@ canvas{display:block;width:100%;height:auto;image-rendering:pixelated}
     <button id="play">▶ 播放</button>
     <button id="next">⏭ 下一步</button>
     <button id="speed">速度 1x</button>
+    <button id="theme">🏭 工厂</button>
+    <button id="follow">📍 跟随最新</button>
     <span id="meta" style="color:#93a1b5;font-size:11.5px">--</span>
   </div>
 </header>
@@ -74,7 +76,13 @@ const ST=[
 ];
 const STBY=Object.fromEntries(ST.map(s=>[s.id,s]));
 const MAP={intake:'intake',inject:'inject',route:'route',skills:'skills',tool:'tool',mcp:'mcp',gather:'gather',think:'engine',model:'engine',loop:'engine',output:'output'};
-let T=0,speed=1,curStep=-1,data=null,timer=null,lastId=null;
+let T=0,speed=1,curStep=-1,data=null,timer=null,lastId=null,theme='factory',liveTimer=null;
+// 两套主题只改颜色，不改布局：工厂（暖） / 水流（冷）
+const THEMES={
+  factory:{plat:'#233250',skirt:'#101a2c',grid:'rgba(140,180,240,.07)',roof:'#566d94',roofEdge:'#33456a',wallTop:'#4a6285',wallL:'#35496a',wallR:'#2b3c58',accent:'#ffb547',win:'#ffca6b',crate:'#c9a06a',crateDark:'#7a5a30'},
+  water:{plat:'#12324a',skirt:'#0a2233',grid:'rgba(120,220,255,.10)',roof:'#2f6f92',roofEdge:'#1d4c66',wallTop:'#2b6a8c',wallL:'#1f4f6b',wallR:'#183f57',accent:'#6fc3ff',win:'#9fe8ff',crate:'#8fd3ff',crateDark:'#2e6ea8'}
+};
+function applyTheme(){Object.assign(PAL,THEMES[theme]);}
 const particles=[],haulers=[];let crawl=null;
 function box3(x,y,w,d,h,patrol,carry){
   const p=iso(x,y,0);
@@ -241,10 +249,25 @@ el('play').onclick=()=>{if(!data)return;if(timer){clearInterval(timer);timer=nul
   timer=setInterval(()=>{if(curStep>=data.steps.length-1){clearInterval(timer);timer=null;el('play').textContent='▶ 播放';return;}curStep++;rowState();},1600/speed);};
 el('next').onclick=()=>{curStep=Math.min((data?data.steps.length:1)-1,curStep+1);rowState();};
 el('speed').onclick=()=>{speed=speed>=3?1:speed+1;el('speed').textContent='速度 '+speed+'x';};
+el('theme').onclick=()=>{theme=theme==='factory'?'water':'factory';applyTheme();el('theme').textContent=theme==='factory'?'🏭 工厂':'💧 水流';};
+function follow(on){
+  if(liveTimer){clearInterval(liveTimer);liveTimer=null;}
+  if(!on){el('follow').textContent='📍 跟随最新';return;}
+  el('follow').textContent='🛰 跟随中';
+  const pull=async()=>{
+    const r=await fetch('/api/latest');const j=await r.json();
+    if(j.steps&&(!data||j.id!==data.id||j.count!==data.count)){data=j;el('meta').textContent=data.count+' 步';
+      if(curStep<0||curStep>=data.steps.length-1)curStep=data.steps.length-1;rowState();}
+  };
+  pull();liveTimer=setInterval(pull,5000);
+}
+el('follow').onclick=()=>follow(!liveTimer);
 el('sess').onchange=loadSession;
 loadSessions().then(async()=>{await loadSession();const q=new URLSearchParams(location.search);
   if(q.get('step')){curStep=Number(q.get('step'));rowState();}
-  if(q.get('play'))el('play').click();});
+  if(q.get('play'))el('play').click();
+  if(q.get('theme')==='water'){theme='water';applyTheme();el('theme').textContent='💧 水流';}
+  if(q.get('live'))follow(true);});
 window.__dbg={get T(){return T},get haulers(){return haulers.length}};
 draw();
 </script></body></html>
