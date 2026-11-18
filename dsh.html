@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>DSH 本体 · 加工车间</title>
+<style>
+:root{--bg:#0b0e13;--panel:#121820;--line:#233145;--text:#e8eaed;--dim:#93a1b5;--accent:#5b9cff;--ok:#7fd18a;--warn:#f0b542;--ink:#0d1117}
+*{box-sizing:border-box}
+body{margin:0;background:#0b0e13;color:var(--text);font:14px/1.6 -apple-system,"Segoe UI","PingFang SC",sans-serif;image-rendering:pixelated}
+header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line)}
+h1{font-size:18px;margin:0;letter-spacing:.02em}
+.ctrl{display:flex;gap:8px;align-items:center;margin-left:auto;flex-wrap:wrap}
+select,button{background:#1a2433;color:#e8eaed;border:1px solid #2c3b52;border-radius:6px;padding:5px 9px;font-size:12.5px}
+button{cursor:pointer} button:hover{border-color:var(--accent)}
+.wrap{display:grid;grid-template-columns:1fr 380px;gap:14px;padding:14px 20px 20px}
+.stage{position:relative;background:linear-gradient(180deg,#0f1520,#0b1018);border:1px solid var(--line);border-radius:12px;min-height:560px;overflow:hidden}
+.stage svg{width:100%;height:100%;display:block}
+.station{transition:filter .2s}
+.station.active{filter:drop-shadow(0 0 8px rgba(91,156,255,.85))}
+.slabel{fill:#8fa1b8;font-size:10px;font-family:ui-monospace,Consolas,monospace}
+.stext{fill:#e8eaed;font-size:10.5px;font-weight:700}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;height:560px;overflow:auto}
+.panel h2{font-size:13px;margin:0 0 8px;color:#cfe0ff}
+.step{padding:6px 8px;border-left:2px solid #2a3a52;margin:4px 0;font-size:12px;color:#b9c6d6;cursor:pointer}
+.step:hover{background:#16202e}
+.step.cur{border-left-color:var(--accent);background:#16202e;color:#e8eaed}
+.step .k{color:#7fb2ff;font-size:10.5px;margin-right:6px;font-family:ui-monospace,monospace}
+.bubble{position:absolute;left:50%;top:12px;transform:translateX(-50%);max-width:70%;background:#101826;border:1px solid #2c3b52;border-radius:8px;padding:8px 12px;font-size:12.5px;color:#dbe6f5}
+.water .pipe{stroke:#2e6ea8}
+.legend{color:var(--dim);font-size:11.5px;padding:0 20px 12px}
+</style></head><body>
+<header>
+  <h1>DSH 本体 · 加工车间</h1>
+  <div class="ctrl">
+    <select id="sess"></select>
+    <button id="theme">🏭 工厂主题</button>
+    <button id="play">▶ 播放</button>
+    <button id="next">⏭ 下一步</button>
+    <button id="reset">↺ 重来</button>
+    <span class="legend" id="meta">--</span>
+  </div>
+</header>
+<div class="wrap">
+  <div class="stage" id="stage">
+    <svg viewBox="0 0 1060 540" id="svg"></svg>
+    <div class="bubble" id="bubble">选一个会话，然后点「播放」看它怎么被加工</div>
+  </div>
+  <aside class="panel">
+    <h2>加工步骤</h2>
+    <div id="steps"></div>
+  </aside>
+</div>
+<div class="legend">一个盒子 = 你的这条消息。它依次经过：输入口 → 规则注入 → 路由（选技能/工具）→ 工具车间 → 结果回收 → 装配（模型）→ 输出。数据来自真实会话事件，可单步回放。</div>
+<script>
+const NS='http://www.w3.org/2000/svg';
+const el=id=>document.getElementById(id);
+const STATIONS=[
+ {id:'intake', name:'输入口',   x:40,  y:230, w:120,h:90, color:'#3b4b63'},
+ {id:'inject', name:'规则注入', x:190, y:230, w:130,h:90, color:'#47566f'},
+ {id:'route',  name:'路由台',   x:350, y:230, w:140,h:90, color:'#4d5f7d'},
+ {id:'tool',   name:'工具车间', x:520, y:110, w:150,h:110,color:'#3f6b52'},
+ {id:'gather', name:'结果回收', x:520, y:330, w:150,h:110,color:'#6b5a3f'},
+ {id:'think',  name:'装配·模型',x:710, y:230, w:160,h:90, color:'#5a4a6b'},
+ {id:'loop',   name:'循环判断', x:710, y:360, w:160,h:80, color:'#54463f'},
+ {id:'model',  name:'模型调用', x:710, y:110, w:160,h:80, color:'#3f5a6b'},
+ {id:'output', name:'输出口',   x:910, y:230, w:110,h:90, color:'#3f6b52'},
+];
+const POS=Object.fromEntries(STATIONS.map(s=>[s.id,{x:s.x+s.w/2,y:s.y+s.h/2}]));
+let data=null, cur=-1, timer=null, theme='factory';
+const mk=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;};
+function stationAt(id){return STATIONS.find(s=>s.id===id);}
+function drawStage(){
+  const svg=el('svg'); svg.innerHTML='';
+  // 地面
+  for(let x=0;x<=1060;x+=40) mk('line',{x1:x,y1:0,x2:x,y2:540,stroke:'#121a26','stroke-width':1},svg);
+  for(let y=0;y<=540;y+=40) mk('line',{x1:0,y1:y,x2:1060,y2:y,stroke:'#121a26','stroke-width':1},svg);
+  // 传送带/水管：按顺序连接
+  const LINKS=[['intake','inject'],['inject','route'],['route','tool'],['tool','gather'],['gather','think'],['route','think'],['think','model'],['model','loop'],['think','output'],['loop','think']];
+  for(const [ia,ib] of LINKS){
+    const a=POS[ia], b=POS[ib];
+    const d=`M${a.x},${a.y} L${b.x},${b.y}`;
+    mk('path',{d,class:'pipe',fill:'none',stroke:theme==='water'?'#2e6ea8':'#2b3d57','stroke-width':theme==='water'?5:3,'stroke-dasharray':theme==='water'?'2 8':'6 8',opacity:.9},svg);
+    if(theme==='water'){
+      const flow=mk('path',{d,fill:'none',stroke:'#6fc3ff','stroke-width':2,'stroke-dasharray':'10 14',opacity:.85},svg);
+      mk('animate',{attributeName:'stroke-dashoffset',from:0,to:-48,dur:'1.2s',repeatCount:'indefinite'},flow);
+    }
+  }
+  // 车间
+  for(const s of STATIONS){
+    const g=mk('g',{class:'station','data-id':s.id},svg);
+    mk('rect',{x:s.x,y:s.y,width:s.w,height:s.h,rx:6,fill:s.color,stroke:'#1b2635','stroke-width':2},g);
+    // 像素风屋顶
+    mk('rect',{x:s.x+6,y:s.y+6,width:s.w-12,height:6,fill:'#0d1117',opacity:.35},g);
+    mk('text',{x:s.x+10,y:s.y+s.h-24,class:'stext'},g).textContent=s.name;
+    mk('text',{x:s.x+10,y:s.y+s.h-8,class:'slabel'},g).textContent=s.id;
+    g.addEventListener('click',()=>{ if(data) jumpTo(indexOfStation(s.id)); });
+  }
+  // 盒子
+  if(data&&cur>=0){
+    const st=STATIONS.find(s=>(data.steps[cur]||{}).station)||STATIONS[0];
+    const g=mk('g',{id:'box'},svg);
+    if(theme==='water'){
+      mk('circle',{cx:st.x+st.w/2,cy:st.y-16,r:9,fill:'#6fc3ff',stroke:'#2e6ea8','stroke-width':2},g);
+    } else {
+      mk('rect',{x:st.x+st.w/2-10,y:st.y-26,width:20,height:16,fill:'#c9a06a',stroke:'#6b4d2a','stroke-width':2},g);
+      mk('line',{x1:st.x+st.w/2,y1:st.y-26,x2:st.x+st.w/2,y2:st.y-10,stroke:'#6b4d2a','stroke-width':2},g);
+      mk('line',{x1:st.x+st.w/2-10,y1:st.y-21,x2:st.x+st.w/2+10,y2:st.y-21,stroke:'#6b4d2a','stroke-width':2},g);
+    }
+  }
+  highlight();
+}
+function highlight(){
+  document.querySelectorAll('.station').forEach(g=>g.classList.remove('active'));
+  if(data&&cur>=0){
+    const id=(data.steps[cur]||{}).station;
+    const g=document.querySelector(`.station[data-id="${id}"]`);
+    if(g)g.classList.add('active');
+  }
+}
+function indexOfStation(id){ if(!data)return 0; const i=data.steps.findIndex(s=>s.station===id); return i<0?0:i; }
+function jumpTo(i){
+  if(!data||!data.steps.length)return;
+  cur=Math.max(0,Math.min(i,data.steps.length-1));
+  const s=data.steps[cur];
+  drawStage();
+  el('bubble').textContent=`[${s.station}] ${s.text}`;
+  renderSteps();
+}
+function renderSteps(){
+  const box=el('steps');
+  if(!data){box.innerHTML='';return;}
+  box.innerHTML=data.steps.map((s,i)=>`<div class="step ${i===cur?'cur':''}" data-i="${i}"><span class="k">${s.station}</span>${s.text}</div>`).join('');
+  box.querySelectorAll('.step').forEach(n=>n.addEventListener('click',()=>jumpTo(Number(n.dataset.i))));
+  if(cur>=0&&box.children[cur]) box.children[cur].scrollIntoView({block:'nearest'});
+}
+async function loadSessions(){
+  const r=await fetch('/api/sessions'); const j=await r.json();
+  el('sess').innerHTML=(j.sessions||[]).map(s=>`<option value="${s.id}">${(s.title||s.id).slice(0,42)}</option>`).join('');
+}
+async function loadSession(){
+  const id=el('sess').value; if(!id)return;
+  const r=await fetch('/api/session?id='+encodeURIComponent(id)); data=await r.json();
+  if(data.error){el('bubble').textContent='读取失败：'+data.error;return;}
+  el('meta').textContent=`${data.count} 步`;
+  cur=-1; drawStage(); renderSteps();
+  el('bubble').textContent=`已加载 ${data.count} 步，点「播放」或「下一步」开始`;
+}
+function play(){
+  if(!data)return;
+  if(timer){clearInterval(timer);timer=null;el('play').textContent='▶ 播放';return;}
+  el('play').textContent='⏸ 暂停';
+  timer=setInterval(()=>{
+    if(cur>=data.steps.length-1){clearInterval(timer);timer=null;el('play').textContent='▶ 播放';return;}
+    jumpTo(cur+1);
+  },900);
+}
+el('play').onclick=play;
+el('next').onclick=()=>{if(timer){clearInterval(timer);timer=null;el('play').textContent='▶ 播放';} jumpTo(cur+1);};
+el('reset').onclick=()=>{if(timer){clearInterval(timer);timer=null;el('play').textContent='▶ 播放';} cur=-1; drawStage(); renderSteps(); el('bubble').textContent='已重置';};
+el('theme').onclick=()=>{theme=theme==='factory'?'water':'factory';el('theme').textContent=theme==='factory'?'🏭 工厂主题':'💧 水流主题';document.body.classList.toggle('water',theme==='water');drawStage();};
+el('sess').onchange=loadSession;
+loadSessions().then(async()=>{ await loadSession(); const q=new URLSearchParams(location.search); if(q.get('step')) jumpTo(Number(q.get('step'))); });
+</script></body></html>
