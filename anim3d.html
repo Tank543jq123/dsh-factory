@@ -153,7 +153,8 @@ function draw(){
       ctx.fillStyle='#ffd08a';ctx.fillRect(hd.X-4,hd.Y-11,9,3);
       if(it.h.carry) isoBox(it.h.x+0.05,it.h.y-0.35,0.9,0.5,0.5,0.5,'#d8b07a','#8a6636','#a07a42',null);
       continue; }
-    if(it.s) drawStation(it.s,it.s.id===activeId);
+    if(it.s){ drawStation(it.s,it.s.id===activeId);
+      if(activeId&&(it.s.id===activeId)&&(it.s.id==='skills'||it.s.id==='route')) drawSearch(it.s); }
     else if(it.c) box3(it.c.x,it.c.y,0.8,0.8,0.8,false,true);
     else if(it.h) box3(it.h.x,it.h.y,0.7,0.7,1.1,true,it.h.carry);
   }
@@ -181,6 +182,22 @@ function draw(){
   vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.55)');
   ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
   requestAnimationFrame(draw);
+}
+// 查找动效：路由台/技能库命中时，扫描光依次扫过 3 个格子，命中格闪金并弹出一张小卡片飞向箱子
+function drawSearch(s){
+  const t=(T*1.6)%1;                 // 0..1 一轮
+  const hit=Math.floor(t*3);          // 命中第几个
+  for(let i=0;i<3;i++){
+    const q=iso(s.x+0.5+i*(s.w-1)/3, s.y+s.d-0.1, s.h*0.55);
+    const scanning=(i===hit)?1:0.35;
+    ctx.fillStyle=`rgba(255,214,120,${(0.25*scanning).toFixed(2)})`;
+    ctx.fillRect(q.X-10,q.Y-26,20,28);
+    if(i===hit){ctx.fillStyle='rgba(255,240,180,.95)';ctx.fillRect(q.X-2,q.Y-24,4,24);}
+  }
+  const q0=iso(s.x+s.w/2,s.y+s.d/2,s.h+0.3), q1=iso(s.x+s.w/2,s.y+3.2,0.6);
+  const f=Math.min(1,((t*3)%1));
+  if(hit===2){const cx=q0.X+(q1.X-q0.X)*f, cy=q0.Y+(q1.Y-q0.Y)*f-Math.sin(f*Math.PI)*30;
+    ctx.fillStyle='#ffe9b8';ctx.fillRect(cx-4,cy-3,8,6);}
 }
 function drawStation(s,active){
   shadow(s.x,s.y,s.w,s.d);

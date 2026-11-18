@@ -797,13 +797,13 @@ function Station({ node, view, display, playing, stepMode, selected, onSelect, t
 
 function Crate({ x, y, scale = 1, theme }) {
   const w = 26 * scale
-  const h = 16 * scale
+  const ch = 16 * scale
   const d = 10 * scale
   return h('g', { transform: `translate(${x} ${y})`, className: `df-crate ${theme === 'water' ? 'df-crate-water' : ''}` },
-    h('polygon', { points: `0,${-h - d / 2} ${w / 2},${-h} 0,${-h + d / 2} ${-w / 2},${-h}`, className: 'df-crate-top' }),
-    h('polygon', { points: `${-w / 2},${-h} 0,${-h + d / 2} 0,${d / 2} ${-w / 2},0`, className: 'df-crate-left' }),
-    h('polygon', { points: `0,${-h + d / 2} ${w / 2},${-h} ${w / 2},0 0,${d / 2}`, className: 'df-crate-right' }),
-    h('line', { x1: 0, y1: -h - d / 2, x2: 0, y2: d / 2, className: 'df-crate-line' }),
+    h('polygon', { points: `0,${-ch - d / 2} ${w / 2},${-ch} 0,${-ch + d / 2} ${-w / 2},${-ch}`, className: 'df-crate-top' }),
+    h('polygon', { points: `${-w / 2},${-ch} 0,${-ch + d / 2} 0,${d / 2} ${-w / 2},0`, className: 'df-crate-left' }),
+    h('polygon', { points: `0,${-ch + d / 2} ${w / 2},${-ch} ${w / 2},0 0,${d / 2}`, className: 'df-crate-right' }),
+    h('line', { x1: 0, y1: -ch - d / 2, x2: 0, y2: d / 2, className: 'df-crate-line' }),
   )
 }
 
