@@ -129,6 +129,7 @@
       <li><b>SVG 手绘，不是 32px 点阵 sprite</b>：2× 清晰，但不是严格像素画；字体用系统字体。</li>
       <li><b>live pre-step 是 360ms 短轮询 + 12 条历史</b>：极短 step 可能只在 HUD 上留下最终 phase；持久回放以 <code>step/end</code> 为准。</li>
       <li><b>MCP 端点未实测</b>：代码支持 <code>mcp__server__tool</code>，但本机演示环境没有配置 MCP server，所以工具窗口是真实 <code>bash</code> 的 <code>tool://local</code>。</li>
+      <li><b>子代理未 live 验证</b>：<code>subagent/catalog</code> 投影、路由面板与单测已完成；本次 3082 演示没有实际派子代理，所以没有 live 子代理截图。</li>
       <li><b>录屏是真实事件回放</b>：不是录模型思考过程；播放的是 3082 上真实 turn 的 session/live 事件。</li>
       <li><b>对话上方展开是模态</b>：inline 高度会被 composer stack 裁切；触发条仍在对话上方。</li>
     </ol>

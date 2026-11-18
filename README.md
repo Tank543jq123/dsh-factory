@@ -31,7 +31,7 @@
 
 - 普通提问：`1 + 1 等于几` → 箱子从入口 → 编排 → 装配 → 模型 → 出口。
 - 触发 skill：`/html-report 用 bash 执行 echo ...` → 箱子在 Skill 车间扫描 4 个技能库，命中 `html-report` 贴标；随后在 MCP/工具车间弹出真实 `bash` 请求/响应窗口。
-- 触发子代理：`subagent/catalog` → 路由车间亮起，详情里显示子代理 label / mode / id。
+- 触发子代理：`subagent/catalog` → 路由车间亮起，详情里显示子代理 label / mode / id（已实现并有单测；本次 3082 演示未实际派子代理，故无 live 子代理截图）。
 
 ## 架构
 
@@ -152,6 +152,7 @@ node --test test/*.test.mjs
 5. **对话上方展开是模态**：`conversation.input.dock` 的 inline 高度会被 composer stack 裁切，改为点击细条弹出模态；触发位置仍在对话上方。
 6. **录屏是真实事件回放**：不是录模型思考过程；播放的是 3082 上真实 turn 的 session/live 事件。
 7. **额度**：2026-11-18 深夜曾因额度用尽出现 2 次 `QUOTA` 失败；00:00 后恢复，普通提问、skill + bash 提问均成功（见 `docs/live-phase-log.txt`）。
+8. **子代理派工未 live 验证**：投影折叠 `subagent/catalog`、路由面板与单测都已完成；本次 3082 演示没有实际派子代理，故没有 live 子代理截图。
 
 ## 文件结构
 
