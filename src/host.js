@@ -826,13 +826,43 @@ function libraryLabel(source) {
 }
 
 /** Read the live skill registry into the four-library shelf the client scans. */
-async function readLibraries(ctx) {
-  const skills = ctx.get('skills')
+async function readLibraries(ctx, sessionId) {
+  let skills = ctx.get('skills')
+  let scope
+  const debug = { sessionId: typeof sessionId === 'string' && sessionId !== '' }
+  const presets = ctx.get('agentPresets')
+  const agents = ctx.get('agents')
+  debug.globalSkills = skills !== undefined && typeof skills.list === 'function'
+  debug.agentsService = agents !== undefined
+  debug.presetsService = presets !== undefined
+  if (agents !== undefined) {
+    try {
+      let agent = typeof sessionId === 'string' && sessionId !== '' && typeof agents.get === 'function'
+        ? agents.get(sessionId)
+        : undefined
+      if (agent === undefined && typeof agents.list === 'function') {
+        const live = agents.list()
+        agent = Array.isArray(live) && live.length > 0 ? live[0] : undefined
+      }
+      debug.agentFound = agent !== undefined
+      const scoped = agent === undefined ? undefined : presets?.serviceFor?.(agent, 'skills')
+      debug.scopedService = scoped !== undefined && typeof scoped.list === 'function'
+      if (scoped !== undefined && typeof scoped.list === 'function') skills = scoped
+      else if (agent !== undefined) scope = agent
+      else if (typeof presets?.acquireScope === 'function') {
+        const lease = await presets.acquireScope(undefined)
+        scope = lease?.key
+        debug.scopeAcquired = scope !== undefined
+      }
+    } catch (error) {
+      debug.error = error instanceof Error ? error.message : String(error)
+    }
+  }
   if (skills === undefined || typeof skills.list !== 'function') {
     return { libraries: [], total: 0, at: Date.now(), error: 'skills service unavailable' }
   }
   try {
-    const list = await skills.list({})
+    const list = await skills.list(scope === undefined ? {} : { scope })
     const groups = new Map()
     for (const entry of Array.isArray(list) ? list : []) {
       if (entry === null || typeof entry !== 'object') continue
@@ -843,23 +873,36 @@ async function readLibraries(ctx) {
         : typeof entry.provider === 'string' && entry.provider !== ''
           ? entry.provider
           : 'runtime'
-      if (!groups.has(source)) groups.set(source, { id: source, label: libraryLabel(source), skills: [] })
+      if (!groups.has(source)) groups.set(source, { source, skills: [] })
       groups.get(source).skills.push(name)
     }
-    const libraries = [...groups.values()]
-      .map((group) => ({
-        id: group.id,
-        label: group.label,
-        count: group.skills.length,
-        skills: group.skills.sort(),
-      }))
-      .sort((left, right) => right.count - left.count || left.id.localeCompare(right.id))
-    return { libraries, total: libraries.reduce((sum, item) => sum + item.count, 0), at: Date.now() }
+    const categories = [
+      { id: 'user-dsh', label: '用户技能库 · ~/.dsh/skills', sources: ['user-dsh'] },
+      { id: 'project-dsh', label: '项目技能库 · .dsh/skills', sources: ['project-dsh'] },
+      { id: 'user-agents', label: '用户 Agents 库 · ~/.agents/skills', sources: ['user-agents', 'project-agents'] },
+      { id: 'runtime', label: '运行时 / 插件技能', sources: ['runtime', 'bundled', 'custom'] },
+    ]
+    const libraries = categories.map((category) => {
+      const skills = []
+      for (const source of category.sources) {
+        const group = groups.get(source)
+        if (group !== undefined) skills.push(...group.skills)
+      }
+      return { id: category.id, label: category.label, count: skills.length, skills: skills.sort() }
+    })
+    for (const [source, group] of groups) {
+      if (categories.some((category) => category.sources.includes(source))) continue
+      libraries[3].skills.push(...group.skills)
+      libraries[3].count = libraries[3].skills.length
+    }
+    libraries[3].skills.sort()
+    return { libraries, total: libraries.reduce((sum, item) => sum + item.count, 0), at: Date.now(), debug }
   } catch (error) {
     return {
       libraries: [],
       total: 0,
       at: Date.now(),
+      debug,
       error: error instanceof Error ? error.message : String(error),
     }
   }
@@ -875,8 +918,15 @@ function registerLibraryRoute(ctx) {
         path: '/api/dsh-factory/libraries',
         methods: ['POST'],
         requestBody: 'buffered',
-        fetch: async () => {
-          const value = await readLibraries(scoped)
+        fetch: async (request) => {
+          let sessionId = ''
+          try {
+            const body = await request.json()
+            sessionId = typeof body?.sessionId === 'string' ? body.sessionId : ''
+          } catch {
+            sessionId = ''
+          }
+          const value = await readLibraries(scoped, sessionId)
           return Response.json({ ok: true, value }, { headers: { 'cache-control': 'no-store' } })
         },
       }),

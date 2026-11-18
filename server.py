@@ -114,7 +114,11 @@ def _zstd_lines(path):
     except Exception:
         return []
 
+_SESS_CACHE={'t':0,'v':None}
+
 def list_sessions(limit=30):
+    if _SESS_CACHE['v'] is not None and time.time()-_SESS_CACHE['t']<60:
+        return _SESS_CACHE['v'][:limit]
     items = []
     for path in glob.glob(os.path.join(DSH, "sessions", "*", "*", "session.v4.jsonl.zstd")):
         if "subagent" in path:
@@ -139,6 +143,7 @@ def list_sessions(limit=30):
             pass
         items.append({"id": sid, "path": path, "title": title or sid[:8], "mtime": os.path.getmtime(path)})
     items.sort(key=lambda x: -x["mtime"])
+    _SESS_CACHE['t']=time.time(); _SESS_CACHE['v']=items
     return items[:limit]
 
 def session_steps(sid, limit=200):
@@ -233,6 +238,15 @@ class H(BaseHTTPRequestHandler):
             self.send_response(200); self.send_header("content-type", "application/json; charset=utf-8")
             self.send_header("cache-control", "no-store"); self.send_header("content-length", str(len(body)))
             self.end_headers(); self.wfile.write(body); return
+        path_only = self.path.split("?")[0]
+        if path_only.endswith(".html") and "/" not in path_only.strip("/"):
+            p = os.path.join(ROOT, path_only.strip("/"))
+            try:
+                body = open(p, "rb").read()
+            except Exception:
+                body = b"not found"
+            self.send_response(200); self.send_header("content-type", "text/html; charset=utf-8")
+            self.send_header("content-length", str(len(body))); self.end_headers(); self.wfile.write(body); return
         if self.path.split("?")[0] in ("/dsh", "/dsh.html"):
             p = os.path.join(ROOT, "dsh.html")
             try:
