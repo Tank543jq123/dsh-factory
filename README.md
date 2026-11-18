@@ -133,6 +133,7 @@ node --test test/*.test.mjs
 | `docs/screenshots/static-pixel-clean.png` | 像素主题全场景（2×） |
 | `docs/screenshots/static-pixel-skill-scan.png` | Skill 4 库扫描 + 命中 html-report |
 | `docs/screenshots/static-pixel-tool-window.png` | 真实 bash 工具窗口 |
+| `docs/screenshots/static-pixel-detail-skill.png` | Skill 车间详情面板（真实事件 / 4 库 / 配置点） |
 | `docs/screenshots/static-water-clean.png` | 水流主题全场景 |
 | `docs/screenshots/static-water-skill-scan.png` | 水主题 Skill 扫描 |
 | `docs/screenshots/static-water-tool-window.png` | 水主题工具窗口 |
