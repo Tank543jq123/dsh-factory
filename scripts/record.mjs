@@ -60,7 +60,7 @@ execFileSync('ffmpeg', [
   '-y',
   '-framerate', String(fps),
   '-i', `${FRAMES}/frame-%05d.jpg`,
-  '-vf', 'crop=1160:699:356:90,scale=1160:699,format=yuv420p',
+  '-vf', 'crop=1160:660:356:90,scale=1160:660,format=yuv420p',
   '-c:v', 'libx264',
   '-preset', 'medium',
   '-crf', '22',
