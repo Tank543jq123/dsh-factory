@@ -42,21 +42,21 @@ const NODES = {
 const WORKSHOP_IDS = ['orchestrate', 'assembly', 'skill', 'route', 'model', 'tools', 'storage']
 
 const EDGES = [
-  { id: 'entry', from: 'intake', to: 'intake', d: 'M30 288 H52', label: '物料', lx: 38, ly: 278, main: true },
-  { id: 'intake', from: 'intake', to: 'orchestrate', d: 'M138 288 H190', label: '传送', lx: 164, ly: 278, main: true },
-  { id: 'orchestrate-assembly', from: 'orchestrate', to: 'assembly', d: 'M300 238 V132 H355', label: '拼装', lx: 318, ly: 186, main: true },
-  { id: 'assembly-model', from: 'assembly', to: 'model', d: 'M505 100 V48 H720 V232 H750', label: '请求', lx: 610, ly: 38, main: true },
-  { id: 'skill-assembly', from: 'skill', to: 'assembly', d: 'M430 367 V182', label: '按需注入', lx: 438, ly: 274, main: false },
-  { id: 'orchestrate-route', from: 'orchestrate', to: 'route', d: 'M320 260 V60 H610 V82', label: '派工', lx: 430, ly: 52, main: false, dashed: true },
-  { id: 'route-model', from: 'route', to: 'model', d: 'M680 128 H720 V232 H750', label: '回流', lx: 706, ly: 186, main: false },
-  { id: 'model-tools', from: 'model', to: 'tools', d: 'M820 344 V365 H700', label: '工具', lx: 770, ly: 356, main: true },
-  { id: 'tools-storage', from: 'tools', to: 'storage', d: 'M700 470 H770', label: '读写', lx: 735, ly: 460, main: false },
-  { id: 'tools-assembly', from: 'tools', to: 'assembly', d: 'M620 365 V330 H505 V182', label: '结果回填', lx: 548, ly: 320, main: false, dashed: true },
-  { id: 'storage-assembly', from: 'storage', to: 'assembly', d: 'M770 470 H735 V330 H505 V182', label: '记忆', lx: 700, ly: 338, main: false, dashed: true },
-  { id: 'model-exit', from: 'model', to: 'exit', d: 'M890 288 H923', label: '回答', lx: 906, ly: 278, main: true },
-  { id: 'route-exit', from: 'route', to: 'exit', d: 'M680 82 V30 H955 V252', label: '子代理', lx: 800, ly: 20, main: false, dashed: true },
-  { id: 'error-loop', from: 'tools', to: 'model', d: 'M700 390 H735 V310 H750', label: '失败回环', lx: 742, ly: 386, main: false, error: true },
-  { id: 'skip-bypass', from: 'orchestrate', to: 'exit', d: 'M255 338 V540 H955 V324', label: '跳过支路', lx: 600, ly: 532, main: false, dashed: true, skip: true },
+  { id: 'entry', from: 'intake', to: 'intake', d: 'M24 304 L52 296', label: '物料', lx: 36, ly: 288, main: true },
+  { id: 'intake', from: 'intake', to: 'orchestrate', d: 'M138 300 L190 290', label: '传送', lx: 164, ly: 286, main: true },
+  { id: 'orchestrate-assembly', from: 'orchestrate', to: 'assembly', d: 'M300 278 L330 226 L355 172', label: '拼装', lx: 320, ly: 206, main: true },
+  { id: 'assembly-model', from: 'assembly', to: 'model', d: 'M505 150 L600 116 L718 198 L750 238', label: '请求', lx: 610, ly: 104, main: true },
+  { id: 'skill-assembly', from: 'skill', to: 'assembly', d: 'M430 367 L430 262 L430 182', label: '按需注入', lx: 440, ly: 274, main: false },
+  { id: 'orchestrate-route', from: 'orchestrate', to: 'route', d: 'M305 238 L305 196 L540 164', label: '派工', lx: 430, ly: 180, main: false, dashed: true },
+  { id: 'route-model', from: 'route', to: 'model', d: 'M680 150 L718 198 L750 238', label: '回流', lx: 714, ly: 190, main: false },
+  { id: 'model-tools', from: 'model', to: 'tools', d: 'M820 344 L778 372 L700 414', label: '工具', lx: 770, ly: 360, main: true },
+  { id: 'tools-storage', from: 'tools', to: 'storage', d: 'M700 462 L770 456', label: '读写', lx: 735, ly: 448, main: false },
+  { id: 'tools-assembly', from: 'tools', to: 'assembly', d: 'M620 365 L620 328 L505 204', label: '结果回填', lx: 556, ly: 322, main: false, dashed: true },
+  { id: 'storage-assembly', from: 'storage', to: 'assembly', d: 'M770 460 L735 424 L505 204', label: '记忆', lx: 700, ly: 350, main: false, dashed: true },
+  { id: 'model-exit', from: 'model', to: 'exit', d: 'M890 300 L923 296', label: '回答', lx: 906, ly: 288, main: true },
+  { id: 'route-exit', from: 'route', to: 'exit', d: 'M680 100 L800 64 L955 250', label: '子代理', lx: 800, ly: 52, main: false, dashed: true },
+  { id: 'error-loop', from: 'tools', to: 'model', d: 'M700 392 L736 344 L750 312', label: '失败回环', lx: 744, ly: 388, main: false, error: true },
+  { id: 'skip-bypass', from: 'orchestrate', to: 'exit', d: 'M255 338 L500 548 L955 330', label: '跳过支路', lx: 600, ly: 540, main: false, dashed: true, skip: true },
 ]
 
 const STAGE_LABEL = {
@@ -484,80 +484,159 @@ function Gear({ x, y, r, teeth = 8, className }) {
 
 function PixelBuilding({ node, active, skipped, done, error }) {
   const { cx, cy, w, h } = node
+  const d = 18
   const left = cx - w / 2
-  const top = cy - h / 2
-  const roofHeight = 14
+  const top = cy - h
+  const bottom = cy - d / 2
+  const topPoint = `${cx},${top - d / 2}`
+  const topLeft = `${left},${top}`
+  const topRight = `${left + w},${top}`
+  const topBottom = `${cx},${top + d / 2}`
   return h('g', { className: 'df-pixel-only' },
-    h('path', {
-      d: `M${left - 5} ${top} L${cx} ${top - roofHeight} L${left + w + 5} ${top} Z`,
-      className: 'df-roof',
-    }),
-    h('rect', { x: left, y: top, width: w, height: h, rx: 2, className: 'df-building' }),
-    h('rect', { x: left + 8, y: top + 8, width: 14, height: 10, className: 'df-window' }),
-    h('rect', { x: left + w - 22, y: top + 8, width: 14, height: 10, className: 'df-window' }),
-    node.id !== 'intake' && node.id !== 'exit'
-      ? h('rect', { x: left + w - 20, y: top - 18, width: 10, height: 18, className: 'df-chimney' })
-      : null,
+    h('ellipse', { cx, cy: cy + 2, rx: w * 0.64, ry: 13, className: 'df-shadow' }),
+    h('polygon', { points: `${topLeft} ${topPoint} ${topRight} ${topBottom}`, className: 'df-roof-3d' }),
+    h('polygon', { points: `${topLeft} ${topBottom} ${cx},${bottom} ${left},${bottom - (top - bottom)}`, className: 'df-wall-left' }),
+    h('polygon', { points: `${topBottom} ${topRight} ${left + w},${bottom - (top - bottom)} ${cx},${bottom}`, className: 'df-wall-right' }),
+    h('polygon', { points: `${topRight} ${left + w + d},${top - d / 2} ${left + w + d},${bottom - (top - bottom) - d / 2} ${left + w},${bottom - (top - bottom)}`, className: 'df-wall-side' }),
+    h('rect', { x: left + 12, y: top + 18, width: 15, height: 11, className: 'df-window-3d' }),
+    h('rect', { x: left + 38, y: top + 18, width: 15, height: 11, className: 'df-window-3d' }),
+    h('rect', { x: left + 24, y: bottom - 24, width: 20, height: 24, className: 'df-door-3d' }),
+    h('rect', { x: left + w - 26, y: top - 24, width: 11, height: 24, className: 'df-chimney-3d' }),
     active
       ? h('g', { className: 'df-smoke' },
-          h('circle', { cx: left + w - 15, cy: top - 24, r: 4 }),
-          h('circle', { cx: left + w - 9, cy: top - 34, r: 5 }),
-          h('circle', { cx: left + w - 18, cy: top - 42, r: 3.5 }),
+          h('circle', { cx: left + w - 20, cy: top - 30, r: 4 }),
+          h('circle', { cx: left + w - 13, cy: top - 40, r: 5 }),
+          h('circle', { cx: left + w - 24, cy: top - 49, r: 3.5 }),
         )
       : null,
-    h('rect', { x: left + 6, y: top + h - 20, width: w - 12, height: 10, className: 'df-belt' }),
-    skipped ? h('g', { className: 'df-skip-mark' },
-      h('line', { x1: left - 6, y1: top + h + 6, x2: left + w + 6, y2: top + h + 6 }),
-      h('text', { x: cx, y: top + h + 20, textAnchor: 'middle', className: 'df-skip-text' }, 'SKIP'),
-    ) : null,
-    error ? h('circle', { cx, cy, r: Math.max(w, h) * 0.62, className: 'df-error-ring' }) : null,
-    done && !skipped ? h('text', { x: left + w - 8, y: top + 16, textAnchor: 'end', className: 'df-check' }, '✓') : null,
+    node.id === 'assembly'
+      ? h('g', { className: active ? 'df-piston df-on' : 'df-piston' },
+          h('rect', { x: left + w - 38, y: top + 10, width: 7, height: 22, className: 'df-piston-rod' }),
+          h('rect', { x: left + w - 43, y: top + 32, width: 17, height: 9, className: 'df-piston-head' }),
+        )
+      : null,
+    node.id === 'tools'
+      ? h('g', { className: active ? 'df-robot-arm df-on' : 'df-robot-arm' },
+          h('rect', { x: left + w - 20, y: bottom - 46, width: 8, height: 28, className: 'df-arm-base' }),
+          h('rect', { x: left + w - 52, y: bottom - 52, width: 38, height: 7, className: 'df-arm-boom' }),
+          h('circle', { cx: left + w - 52, cy: bottom - 49, r: 5, className: 'df-arm-joint' }),
+        )
+      : null,
+    node.id === 'storage'
+      ? h('g', { className: active ? 'df-crane df-on' : 'df-crane' },
+          h('rect', { x: cx - 3, y: top - 42, width: 6, height: 30, className: 'df-crane-mast' }),
+          h('rect', { x: cx - 20, y: top - 44, width: 40, height: 5, className: 'df-crane-boom' }),
+          h('rect', { x: cx + 14, y: top - 38, width: 2, height: 22, className: 'df-crane-hook' }),
+        )
+      : null,
+    h('rect', { x: left - 2, y: bottom - 6, width: w + d + 4, height: 6, className: 'df-plinth' }),
+    done && !skipped ? h('text', { x: left + w + 4, y: top - d / 2 - 6, textAnchor: 'end', className: 'df-check' }, '✓') : null,
+    error ? h('ellipse', { cx, cy: cy - h / 2, rx: w * 0.7, ry: h * 0.7, className: 'df-error-ring' }) : null,
   )
 }
 
 function WaterTank({ node, active, skipped, done, error }) {
   const { cx, cy, w, h } = node
   const left = cx - w / 2
-  const top = cy - h / 2
+  const top = cy - h
+  const bottom = cy - 10
+  const radius = Math.min(18, w / 3)
   return h('g', { className: 'df-water-only' },
-    h('rect', { x: left, y: top, width: w, height: h, rx: Math.min(34, h / 2), className: 'df-tank' }),
-    h('rect', { x: left + 10, y: top + 10, width: w - 20, height: h * 0.4, rx: 12, className: 'df-water-fill' }),
-    h('circle', { cx: left + 20, cy: top + 20, r: 3, className: 'df-bubble' }),
-    h('circle', { cx: left + 34, cy: top + 28, r: 2, className: 'df-bubble df-bubble-b' }),
-    h('circle', { cx: left + w - 26, cy: top + 22, r: 2.5, className: 'df-bubble df-bubble-c' }),
-    h('circle', { cx: left - 2, cy: cy, r: 8, className: 'df-valve' }),
-    h('line', { x1: left - 8, y1: cy, x2: left + 4, y2: cy, className: 'df-valve-line' }),
-    h('line', { x1: left - 2, y1: cy - 6, x2: left - 2, y2: cy + 6, className: 'df-valve-line' }),
-    skipped ? h('g', { className: 'df-skip-mark' },
-      h('line', { x1: left - 6, y1: top + h + 6, x2: left + w + 6, y2: top + h + 6 }),
-      h('text', { x: cx, y: top + h + 20, textAnchor: 'middle', className: 'df-skip-text' }, 'BYPASS'),
-    ) : null,
-    error ? h('circle', { cx, cy, r: Math.max(w, h) * 0.62, className: 'df-error-ring' }) : null,
-    done && !skipped ? h('text', { x: left + w - 8, y: top + 16, textAnchor: 'end', className: 'df-check' }, '✓') : null,
+    h('ellipse', { cx, cy: cy + 2, rx: w * 0.64, ry: 14, className: 'df-shadow' }),
+    h('rect', { x: left, y: top, width: w, height: h - 6, rx: radius, className: 'df-tank-3d' }),
+    h('ellipse', { cx, cy: top, rx: w / 2, ry: 10, className: 'df-tank-top' }),
+    h('path', { d: `M${left + 8} ${bottom - 24} Q${cx - 20} ${bottom - 32} ${cx} ${bottom - 24} T${left + w - 8} ${bottom - 24}`, className: 'df-water-line' }),
+    h('rect', { x: left + w - 16, y: top + 14, width: 9, height: h - 30, rx: 5, className: 'df-tank-gauge' }),
+    h('circle', { cx: left + 20, cy: top + 26, r: 4, className: 'df-bubble' }),
+    h('circle', { cx: left + 36, cy: top + 38, r: 2.5, className: 'df-bubble df-bubble-b' }),
+    h('circle', { cx: left + w - 30, cy: top + 30, r: 3, className: 'df-bubble df-bubble-c' }),
+    h('circle', { cx: left - 4, cy: cy - h / 2, r: 9, className: 'df-valve' }),
+    h('line', { x1: left - 12, y1: cy - h / 2, x2: left + 4, y2: cy - h / 2, className: 'df-valve-line' }),
+    h('line', { x1: left - 4, y1: cy - h / 2 - 7, x2: left - 4, y2: cy - h / 2 + 7, className: 'df-valve-line' }),
+    h('path', { d: `M${left + w - 10} ${cy - 18} H${left + w + 14} V${cy + 6}`, className: 'df-pipe-out' }),
+    active
+      ? h('g', { className: 'df-bubbles' },
+          h('circle', { cx: left + 26, cy: top + 20, r: 3 }),
+          h('circle', { cx: left + 44, cy: top + 16, r: 2 }),
+        )
+      : null,
+    done && !skipped ? h('text', { x: left + w + 8, y: top - 10, textAnchor: 'end', className: 'df-check' }, '✓') : null,
+    error ? h('ellipse', { cx, cy: cy - h / 2, rx: w * 0.7, ry: h * 0.7, className: 'df-error-ring' }) : null,
   )
 }
 
 function ModelExtras({ node, active, theme }) {
   const { cx, cy } = node
+  const gearY = cy - 48
   if (theme === 'water') {
     return h('g', { className: active ? 'df-model-fx df-active' : 'df-model-fx' },
-      h('circle', { cx, cy: cy - 6, r: 20, className: 'df-turbine-ring' }),
-      h('path', { d: `M${cx - 18} ${cy - 6} A18 18 0 0 1 ${cx + 18} ${cy - 6}`, className: 'df-turbine-water' }),
+      h('circle', { cx, cy: gearY, r: 22, className: 'df-turbine-ring' }),
+      h('path', { d: `M${cx - 19} ${gearY} A19 19 0 0 1 ${cx + 19} ${gearY}`, className: 'df-turbine-water' }),
       active ? h('g', { className: 'df-sparks' },
-        h('circle', { cx: cx - 26, cy: cy - 20, r: 2.5 }),
-        h('circle', { cx: cx + 24, cy: cy - 26, r: 2 }),
-        h('circle', { cx: cx + 30, cy: cy - 8, r: 1.8 }),
+        h('circle', { cx: cx - 30, cy: gearY - 14, r: 2.5 }),
+        h('circle', { cx: cx + 27, cy: gearY - 20, r: 2 }),
+        h('circle', { cx: cx + 34, cy: gearY + 4, r: 1.8 }),
       ) : null,
     )
   }
   return h('g', { className: active ? 'df-model-fx df-active' : 'df-model-fx' },
-    h(Gear, { x: cx - 16, y: cy - 2, r: 12, teeth: 8, className: 'df-gear-a' }),
-    h(Gear, { x: cx + 15, y: cy + 10, r: 9, teeth: 7, className: 'df-gear-b' }),
+    h(Gear, { x: cx - 18, y: gearY, r: 13, teeth: 8, className: 'df-gear-a' }),
+    h(Gear, { x: cx + 16, y: gearY + 10, r: 10, teeth: 7, className: 'df-gear-b' }),
     active ? h('g', { className: 'df-sparks' },
-      h('line', { x1: cx - 34, y1: cy - 28, x2: cx - 26, y2: cy - 20 }),
-      h('line', { x1: cx + 26, y1: cy - 30, x2: cx + 32, y2: cy - 22 }),
-      h('line', { x1: cx + 36, y1: cy - 4, x2: cx + 44, y2: cy - 10 }),
+      h('line', { x1: cx - 38, y1: gearY - 22, x2: cx - 30, y2: gearY - 14 }),
+      h('line', { x1: cx + 28, y1: gearY - 26, x2: cx + 34, y2: gearY - 18 }),
+      h('line', { x1: cx + 40, y1: gearY - 2, x2: cx + 48, y2: gearY - 8 }),
     ) : null,
+  )
+}
+
+function WorkerArt({ theme, active, walking, flip, carrying }) {
+  const scale = flip ? -1 : 1
+  const body = theme === 'water'
+    ? h('g', { className: 'df-worker-body' },
+        h('rect', { x: -5, y: -18, width: 10, height: 13, rx: 4, className: 'df-worker-torso' }),
+        h('circle', { cx: 0, cy: -22, r: 5, className: 'df-worker-head' }),
+        h('rect', { x: -9, y: -16, width: 4, height: 11, rx: 2, className: 'df-worker-arm df-arm-l' }),
+        h('rect', { x: 5, y: -16, width: 4, height: 11, rx: 2, className: 'df-worker-arm df-arm-r' }),
+        h('rect', { x: -5, y: -6, width: 4, height: 7, rx: 2, className: 'df-worker-leg df-leg-l' }),
+        h('rect', { x: 1, y: -6, width: 4, height: 7, rx: 2, className: 'df-worker-leg df-leg-r' }),
+        h('rect', { x: -6, y: -28, width: 12, height: 4, rx: 2, className: 'df-worker-helmet' }),
+      )
+    : h('g', { className: 'df-worker-body' },
+        h('rect', { x: -5, y: -18, width: 10, height: 13, className: 'df-worker-torso' }),
+        h('rect', { x: -4, y: -26, width: 8, height: 8, className: 'df-worker-head' }),
+        h('rect', { x: -9, y: -16, width: 4, height: 11, className: 'df-worker-arm df-arm-l' }),
+        h('rect', { x: 5, y: -16, width: 4, height: 11, className: 'df-worker-arm df-arm-r' }),
+        h('rect', { x: -5, y: -6, width: 4, height: 7, className: 'df-worker-leg df-leg-l' }),
+        h('rect', { x: 1, y: -6, width: 4, height: 7, className: 'df-worker-leg df-leg-r' }),
+        h('rect', { x: -6, y: -29, width: 12, height: 4, className: 'df-worker-helmet' }),
+      )
+  return h('g', { className: 'df-worker', 'data-active': active ? '1' : '0', 'data-walking': walking ? '1' : '0' },
+    h('ellipse', { cx: 0, cy: 1, rx: 10, ry: 3.5, className: 'df-worker-shadow' }),
+    h('g', { transform: `scale(${scale} 1)`, className: 'df-worker-scale' },
+      body,
+      carrying ? h('rect', { x: 7, y: -16, width: 11, height: 9, className: 'df-worker-carry' }) : null,
+    ),
+  )
+}
+
+function Worker({ x, y, theme, active, walking, flip, carrying }) {
+  return h('g', { className: 'df-worker-seat', style: { transform: `translate(${x}px, ${y}px)` } },
+    h(WorkerArt, { theme, active, walking, flip, carrying }),
+  )
+}
+
+function StationSign({ node, active, skipped, done, error }) {
+  const { cx, cy, w } = node
+  const width = Math.max(96, w + 6)
+  return h('g', { className: 'df-sign' },
+    h('rect', { x: cx - width / 2, y: cy + 5, width, height: 30, rx: 5, className: 'df-sign-bg' }),
+    h('circle', { cx: cx - width / 2 + 10, cy: cy + 20, r: 4, className: `df-sign-lamp ${active ? 'df-on' : ''} ${error ? 'df-bad' : ''} ${done ? 'df-ok' : ''}` }),
+    h('text', { x: cx - width / 2 + 20, y: cy + 18, className: 'df-station-name' }, node.name),
+    h('text', { x: cx - width / 2 + 20, y: cy + 30, className: 'df-station-sub' }, node.sub),
+    skipped
+      ? h('text', { x: cx + width / 2 - 6, y: cy + 20, textAnchor: 'end', className: 'df-skip-badge' }, '跳过')
+      : null,
   )
 }
 

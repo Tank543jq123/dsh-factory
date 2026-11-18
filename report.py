@@ -95,13 +95,14 @@ img{{width:100%;border:1px solid #22303f;border-radius:8px;margin-top:8px}}
     html += img_tag(shots.get("water"), "等距 3D（第 24 步，另一时刻）")
     html += img_tag(shots.get("arch"), "架构页（SuperAgent 视角）")
     html += f"""
-<h2>五、风险与局限</h2><div class="risk">
+<h2>五、收敛说明</h2><p style="color:#93a1b5;font-size:13px">此前并行产生了两个伪 3D 页面与两个一次性汇报定时器（3091/pixel3d 与 3092/anim3d）。现已收敛：<b>只保留 3092 的 anim3d 一个页面</b>，重复的 <code>dsh-pixel-factory.service</code> 与 <code>dsh-pixel-report-once.timer</code> 已 disable，明早只会有这一份 08:30 汇报（避免重复推送）。原 3091 的页面文件仍保留在 <code>~/.dsh/factory/</code> 作为历史记录，不再对外提供。</p>
+<h2>六、风险与局限</h2><div class="risk">
 ① 还不是 DSH 插件：页面独立运行、读会话文件回放，<b>不是实时</b>；挂进会话页需要写插件并接运行事件。<br>
 ② 动画是示意性的：工人走动、机器抖动是按当前工位状态驱动，<b>不代表真实耗时比例</b>。<br>
 ③ 数据面有限：目前只读会话事件与配置，token 明细还没接（context 面板有，可后续联动）。<br>
 ④ 技能库/工具选择过程还没细到「在几个库里逐个查找」的动作，目前只显示选中的工具。
 </div>
-<h2>六、下一步（建议）</h2>
+<h2>七、下一步（建议）</h2>
 <ol>
 <li>把它做成真正的 DSH 插件：会话顶部按钮 + 实时事件流，边聊边看加工。</li>
 <li>细化工作动作：路由台逐个查库（技能/工具/MCP）、命中后取出的动画；模型引擎按真实耗时变速。</li>
