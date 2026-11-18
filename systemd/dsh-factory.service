@@ -1,0 +1,11 @@
+[Unit]
+Description=DSH 工厂视图（Agent 架构与调度动画）
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/tank543/src/dsh-factory
+Environment=FACTORY_PORT=3091
+ExecStart=/usr/bin/python3 /home/tank543/src/dsh-factory/server.py
+Restart=always
+RestartSec=3

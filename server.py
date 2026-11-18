@@ -1,0 +1,139 @@
+#!/usr/bin/env python3
+"""DSH 工厂视图：把 Agent 的内部结构（车间）与调度（流水线）用一张动画工厂图展示。
+
+只读：读取 skills 目录、profile bundles、schedule.json、书阁 library.json、
+SuperAgent 的 orchestrator.sqlite（ticket/trigger/decision 计数）。不写任何东西。
+"""
+import json, os, sqlite3, time
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+HOME = os.path.expanduser("~")
+DSH = os.path.join(HOME, ".dsh")
+ROOT = os.path.dirname(os.path.abspath(__file__))
+PORT = int(os.environ.get("FACTORY_PORT", "3091"))
+
+def read_json(p, default=None):
+    try:
+        with open(p, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return default
+
+def skills():
+    d = os.path.join(DSH, "skills")
+    items = []
+    try:
+        for name in sorted(os.listdir(d)):
+            p = os.path.join(d, name)
+            if not os.path.isdir(p):
+                continue
+            desc = ""
+            for cand in ("SKILL.md", "README.md"):
+                f = os.path.join(p, cand)
+                if os.path.isfile(f):
+                    try:
+                        with open(f, encoding="utf-8") as fh:
+                            lines = [l.strip() for l in fh.read().splitlines() if l.strip()]
+                        desc = next((l for l in lines if not l.startswith("#")), "")[:120]
+                    except Exception:
+                        pass
+                    break
+            items.append({"name": name, "desc": desc})
+    except Exception:
+        pass
+    return items
+
+def bundles():
+    out = []
+    for prof in ("web", "superagent", "headless"):
+        p = os.path.join(DSH, "profiles", prof, "package.json")
+        d = read_json(p)
+        if not d:
+            continue
+        b = (d.get("dsh") or {}).get("profile", {}).get("bundles", [])
+        out.append({"profile": prof, "bundles": b})
+    return out
+
+def schedules():
+    d = read_json(os.path.join(DSH, "storages", "schedule.json"), {})
+    tasks = ((d.get("tables") or {}).get("tasks") or {})
+    out = []
+    for _k, v in tasks.items():
+        rec = (v or {}).get("record") or {}
+        out.append({"title": rec.get("title") or rec.get("id") or "?", "time": rec.get("time") or "", "kind": rec.get("kind") or "", "status": v.get("status") or ""})
+    return out
+
+def library():
+    cfg = read_json(os.path.join(DSH, "dsh-manuscript-config.json"), {}) or {}
+    root = cfg.get("root") or os.path.join(DSH, "library")
+    lib = read_json(os.path.join(root, "library.json"), {}) or {}
+    counts = lib.get("counts") or {}
+    return {"root": root, "entries": counts.get("entries"), "retired": counts.get("retired"), "volumes": len(lib.get("volumes") or [])}
+
+def tickets():
+    p = os.path.join(DSH, "state", "superagent", "orchestrator.sqlite")
+    out = {"tickets": 0, "triggers24h": 0, "decisions24h": 0, "threads": 0, "titles": []}
+    if not os.path.exists(p):
+        return out
+    try:
+        c = sqlite3.connect(f"file:{p}?mode=ro", uri=True, timeout=3)
+        out["tickets"] = c.execute("select count(*) from ticket").fetchone()[0]
+        out["threads"] = c.execute("select count(*) from thread").fetchone()[0]
+        cut = int(time.time() * 1000) - 24 * 3600 * 1000
+        try:
+            out["triggers24h"] = c.execute("select count(*) from trigger where at >= ?", (cut,)).fetchone()[0]
+        except Exception:
+            out["triggers24h"] = c.execute("select count(*) from trigger").fetchone()[0]
+        try:
+            out["decisions24h"] = c.execute("select count(*) from decision").fetchone()[0]
+        except Exception:
+            pass
+        rows = c.execute("select value from ticket").fetchall()
+        for (val,) in rows[:5]:
+            try:
+                t = json.loads(val)
+                out["titles"].append(t.get("title") or t.get("summary") or t.get("id") or "?")
+            except Exception:
+                pass
+        c.close()
+    except Exception as e:
+        out["error"] = str(e)[:120]
+    return out
+
+def snapshot():
+    return {
+        "generatedAt": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "workshops": {
+            "intake": {"skillsNote": "入口：会话 / 工单 / 定时触发"},
+            "routing": {"schedules": schedules(), "tickets": tickets()},
+            "skills": {"items": skills()},
+            "mcp": {"items": [], "note": "当前没有配置 MCP 服务器"},
+            "tools": {"profiles": bundles()},
+            "memory": library(),
+            "model": {"providers": sorted([n.replace(".yaml", "") for n in os.listdir(DSH) if n.startswith("llm-")])},
+        },
+    }
+
+class H(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path.startswith("/api/factory"):
+            body = json.dumps(snapshot(), ensure_ascii=False).encode()
+            self.send_response(200); self.send_header("content-type", "application/json; charset=utf-8")
+            self.send_header("cache-control", "no-store"); self.send_header("content-length", str(len(body)))
+            self.end_headers(); self.wfile.write(body); return
+        if self.path in ("/", "/index.html"):
+            p = os.path.join(ROOT, "index.html")
+            try:
+                body = open(p, "rb").read()
+            except Exception:
+                body = b"missing index.html"
+            self.send_response(200); self.send_header("content-type", "text/html; charset=utf-8")
+            self.send_header("content-length", str(len(body))); self.end_headers(); self.wfile.write(body); return
+        self.send_response(404); self.end_headers()
+
+    def log_message(self, *a):
+        pass
+
+if __name__ == "__main__":
+    print(f"factory on http://127.0.0.1:{PORT}")
+    ThreadingHTTPServer(("127.0.0.1", PORT), H).serve_forever()
