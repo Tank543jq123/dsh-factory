@@ -35,8 +35,8 @@ def push(payload):
 def main():
     snap = api("/api/factory")
     wk = snap["workshops"]
-    shots["factory"] = chrome(BASE + "/anim.html?step=16&play=1", os.path.join(OUT_DIR, "shot-factory.png"))
-    shots["water"] = chrome(BASE + "/anim.html?step=16&play=1&theme=water", os.path.join(OUT_DIR, "shot-water.png"))
+    shots["factory"] = chrome(BASE + "/anim3d.html?step=16&play=1", os.path.join(OUT_DIR, "shot-factory.png"))
+    shots["water"] = chrome(BASE + "/anim3d.html?step=24&play=1", os.path.join(OUT_DIR, "shot-water.png"))
     shots["arch"] = chrome(BASE + "/", os.path.join(OUT_DIR, "shot-arch.png"))
 
     skills = wk["skills"]["items"]
@@ -80,7 +80,7 @@ img{{width:100%;border:1px solid #22303f;border-radius:8px;margin-top:8px}}
 <h2>三、做了什么</h2>
 <ol>
 <li><b>数据层</b>：解析 <code>~/.dsh/sessions/**/session.v4.jsonl.zstd</code> 的真实事件（turn/start、user/message、system/message、step/start、assistant/message、tool/call、tool/result、step/end、request/context），映射为工位序列。证据：<code>{ROOT}/server.py</code>。</li>
-<li><b>动画层</b>：Canvas 像素风工厂——传送带滚动、3 个工人巡逻并搬箱子、机器（活塞/齿轮/火花/蒸汽/指示灯）各自运转；主题可切工厂/水流。证据：<code>{ROOT}/anim.html</code>。</li>
+<li><b>动画层</b>：Canvas 等距（伪 3D）工厂——传送带滚动、3 个工人巡逻并搬箱子、机器（活塞/齿轮/火花/蒸汽/指示灯）各自运转；主题可切工厂/水流。证据：<code>{ROOT}/anim.html</code>。</li>
 <li><b>服务层</b>：systemd 常驻 <code>dsh-factory.service</code>，端口 {BASE.rsplit(':',1)[-1]}；接口 <code>/api/factory</code>（架构数据）、<code>/api/sessions</code>、<code>/api/session?id=</code>。</li>
 <li><b>自检</b>：用 headless Chrome 多次截图验证渲染；两张不同时刻的截图字节不同，证明动画在跑（不是静态图）。</li>
 </ol>
@@ -91,8 +91,8 @@ img{{width:100%;border:1px solid #22303f;border-radius:8px;margin-top:8px}}
             return ""
         b64 = base64.b64encode(open(path, "rb").read()).decode()
         return f"<div class='small' style='margin-top:12px{style}'>{cap}</div><img src='data:image/png;base64,{b64}'>"
-    html += img_tag(shots.get("factory"), "工厂主题（第 16 步，结果回收车间）")
-    html += img_tag(shots.get("water"), "水流主题")
+    html += img_tag(shots.get("factory"), "等距 3D（第 16 步）")
+    html += img_tag(shots.get("water"), "等距 3D（第 24 步，另一时刻）")
     html += img_tag(shots.get("arch"), "架构页（SuperAgent 视角）")
     html += f"""
 <h2>五、风险与局限</h2><div class="risk">
