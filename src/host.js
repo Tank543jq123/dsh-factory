@@ -469,6 +469,7 @@ export function fold(rawState, event) {
         startedAt: time,
         endedAt: null,
         current: null,
+        lastError: null,
         perTurn: {
           turn,
           startedAt: time,
@@ -484,7 +485,13 @@ export function fold(rawState, event) {
 
     case 'turn/end': {
       const turn = Number(data.turn ?? rawState.turn ?? 0)
-      const reason = String(data.reason ?? 'completed')
+      const reason = typeof data.reason === 'string'
+        ? data.reason
+        : typeof data.reason?.kind === 'string'
+          ? data.reason.kind
+          : typeof data.reason?.type === 'string'
+            ? data.reason.type
+            : 'completed'
       let state = {
         ...rawState,
         seq,
@@ -802,7 +809,7 @@ export function fold(rawState, event) {
 export const factoryProjection = {
   key: 'factoryTrail',
   stateSchema: FactoryState,
-  stateVersion: 1,
+  stateVersion: 2,
   init: (header) => initialState(header),
   apply: (state, event) => fold(state, event),
   wire: {
@@ -813,16 +820,22 @@ export const factoryProjection = {
 
 /** Process-local phase marks for the in-flight step. Never persisted, never faked. */
 const LIVE = new Map()
+const LIVE_TRACE = new Map()
 
 function markLive(agent, phase, label, extra) {
   const sessionId = agent?.id
   if (typeof sessionId !== 'string' || sessionId === '') return
+  const previous = LIVE.get(sessionId)
+  const at = Date.now()
+  const history = [...(Array.isArray(previous?.history) ? previous.history : []), { phase, label, at }].slice(-12)
   LIVE.set(sessionId, {
     phase,
     label,
-    at: Date.now(),
+    at,
+    history,
     ...extra,
   })
+  LIVE_TRACE.set(sessionId, history.slice(-20))
 }
 
 function clearLive(sessionId) {
@@ -1015,7 +1028,8 @@ function registerLiveRoute(ctx) {
             sessionId = ''
           }
           const value = sessionId === '' ? null : LIVE.get(sessionId) ?? null
-          return Response.json({ ok: true, value }, { headers: { 'cache-control': 'no-store' } })
+          const trace = sessionId === '' ? [] : LIVE_TRACE.get(sessionId) ?? []
+          return Response.json({ ok: true, value, trace }, { headers: { 'cache-control': 'no-store' } })
         },
       }),
       'dsh-factory: live phase route',
@@ -1044,4 +1058,6 @@ export const __test = {
   isStorageTool,
   isSubagentTool,
   isSkillTool,
+  markLive,
+  LIVE,
 }

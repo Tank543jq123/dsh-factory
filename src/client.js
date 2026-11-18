@@ -43,27 +43,26 @@ const NODES = {
   tools: { cx: 620, cy: 415, w: 160, h: 96, name: 'MCP / 工具车间', sub: '外部接口', icon: 'wrench' },
   model: { cx: 820, cy: 288, w: 128, h: 128, name: '模型车间', sub: '推理', icon: 'gear' },
   storage: { cx: 845, cy: 470, w: 160, h: 96, name: '仓储', sub: '工作区 / 记忆', icon: 'crate' },
-  exit: { cx: 955, cy: 288, w: 96, h: 64, name: '出口', sub: '回答', icon: 'door' },
+  exit: { cx: 940, cy: 288, w: 96, h: 64, name: '出口', sub: '回答', icon: 'door' },
 }
 
 const WORKSHOP_IDS = ['orchestrate', 'assembly', 'skill', 'route', 'model', 'tools', 'storage']
 
 const EDGES = [
   { id: 'entry', from: 'intake', to: 'intake', d: 'M24 304 L52 296', label: '物料', lx: 36, ly: 288, main: true },
-  { id: 'intake', from: 'intake', to: 'orchestrate', d: 'M138 300 L190 290', label: '传送', lx: 164, ly: 286, main: true },
+  { id: 'intake', from: 'intake', to: 'orchestrate', d: 'M138 300 L190 290', label: '', main: true },
   { id: 'orchestrate-assembly', from: 'orchestrate', to: 'assembly', d: 'M300 278 L330 226 L355 172', label: '拼装', lx: 320, ly: 206, main: true },
-  { id: 'assembly-model', from: 'assembly', to: 'model', d: 'M505 150 L600 116 L718 198 L750 238', label: '请求', lx: 610, ly: 104, main: true },
-  { id: 'skill-assembly', from: 'skill', to: 'assembly', d: 'M430 367 L430 262 L430 182', label: '按需注入', lx: 440, ly: 274, main: false },
-  { id: 'orchestrate-route', from: 'orchestrate', to: 'route', d: 'M305 238 L305 196 L540 164', label: '派工', lx: 430, ly: 180, main: false, dashed: true },
-  { id: 'route-model', from: 'route', to: 'model', d: 'M680 150 L718 198 L750 238', label: '回流', lx: 714, ly: 190, main: false },
+  { id: 'assembly-model', from: 'assembly', to: 'model', d: 'M505 100 V52 H720 V232 H750', label: '请求', lx: 610, ly: 42, main: true },
+  { id: 'skill-assembly', from: 'skill', to: 'assembly', d: 'M430 367 L430 270 L430 182', label: '按需注入', lx: 440, ly: 274, main: false },
+  { id: 'orchestrate-route', from: 'orchestrate', to: 'route', d: 'M305 238 V196 L540 160', label: '派工', lx: 420, ly: 186, main: false },
+  { id: 'route-model', from: 'route', to: 'model', d: 'M680 150 L720 200 L750 238', label: '回流', lx: 714, ly: 192, main: false },
   { id: 'model-tools', from: 'model', to: 'tools', d: 'M820 344 L778 372 L700 414', label: '工具', lx: 770, ly: 360, main: true },
   { id: 'tools-storage', from: 'tools', to: 'storage', d: 'M700 462 L770 456', label: '读写', lx: 735, ly: 448, main: false },
-  { id: 'tools-assembly', from: 'tools', to: 'assembly', d: 'M620 365 L620 328 L505 204', label: '结果回填', lx: 556, ly: 322, main: false, dashed: true },
-  { id: 'storage-assembly', from: 'storage', to: 'assembly', d: 'M770 460 L735 424 L505 204', label: '记忆', lx: 700, ly: 350, main: false, dashed: true },
-  { id: 'model-exit', from: 'model', to: 'exit', d: 'M890 300 L923 296', label: '回答', lx: 906, ly: 288, main: true },
-  { id: 'route-exit', from: 'route', to: 'exit', d: 'M680 100 L800 64 L955 250', label: '子代理', lx: 800, ly: 52, main: false, dashed: true },
-  { id: 'error-loop', from: 'tools', to: 'model', d: 'M700 392 L736 344 L750 312', label: '失败回环', lx: 744, ly: 388, main: false, error: true },
-  { id: 'skip-bypass', from: 'orchestrate', to: 'exit', d: 'M255 338 L500 548 L955 330', label: '跳过支路', lx: 600, ly: 540, main: false, dashed: true, skip: true },
+  { id: 'tools-assembly', from: 'tools', to: 'assembly', d: 'M540 368 L540 330 L505 204', label: '回填', lx: 548, ly: 322, main: false, thin: true },
+  { id: 'model-exit', from: 'model', to: 'exit', d: 'M890 300 L908 296', label: '回答', lx: 900, ly: 288, main: true },
+  { id: 'route-exit', from: 'route', to: 'exit', d: 'M680 100 L800 64 L920 250', label: '子代理', lx: 800, ly: 52, main: false, thin: true },
+  { id: 'error-loop', from: 'tools', to: 'model', d: 'M700 392 L736 344 L750 312', label: '失败回环', lx: 744, ly: 388, main: false, thin: true, error: true },
+  { id: 'skip-bypass', from: 'orchestrate', to: 'exit', d: 'M255 338 L500 548 L920 330', label: '跳过支路', lx: 600, ly: 540, main: false, thin: true, skip: true },
 ]
 
 const WORKER_POSTS = [
@@ -72,7 +71,7 @@ const WORKER_POSTS = [
   { id: 'route', x: 700, y: 178, flip: true },
   { id: 'tools', x: 516, y: 472, flip: false },
   { id: 'model', x: 932, y: 330, flip: true },
-  { id: 'storage', x: 936, y: 508, flip: true },
+  { id: 'storage', x: 920, y: 508, flip: true },
 ]
 
 const STAGE_LABEL = {
@@ -321,13 +320,23 @@ function routeOfView(view) {
   return { label: '单轮', detail: '不派工，直连模型', tone: 'single' }
 }
 
+function cleanLabel(value) {
+  return String(value ?? '')
+    .replace(/\[object Object\]/g, '…')
+    .replace(/undefined|null/g, '…')
+}
+
 function toDisplay(event) {
   if (event === null || event === undefined) return null
   const workshop = event.kind === 'turn/end' ? 'exit' : event.workshop
+  const rawLabel = cleanLabel(event.label)
+  const label = event.kind === 'turn/end' && rawLabel.includes('…')
+    ? '本轮结束'
+    : rawLabel
   return {
     workshop,
-    label: event.label ?? '',
-    detail: event.detail ?? '',
+    label,
+    detail: cleanLabel(event.detail),
     kind: event.kind ?? '',
     seq: event.seq ?? -1,
     time: event.time ?? 0,
@@ -456,21 +465,29 @@ function usePlayback(view, speed, stepMode, livePhase) {
 
   useEffect(() => {
     if (livePhase === null || livePhase === undefined) return
-    const at = Number(livePhase.at)
-    if (!Number.isFinite(at) || at <= liveAt.current) return
-    liveAt.current = at
-    if (livePhase.phase !== 'pre-step' && livePhase.phase !== 'model-request') return
-    const workshop = livePhase.phase === 'model-request' ? 'model' : 'assembly'
-    queue.current.push({
-      seq: -at,
-      time: at,
-      workshop,
-      kind: `agent/${livePhase.phase}`,
-      label: typeof livePhase.label === 'string' ? livePhase.label : `agent/${livePhase.phase}`,
-      detail: `host 进程事件 · ${livePhase.phase}`,
-      status: '',
-    })
-    if (queue.current.length > 60) queue.current.shift()
+    const entries = Array.isArray(livePhase.history) && livePhase.history.length > 0
+      ? livePhase.history
+      : [livePhase]
+    let added = false
+    for (const entry of entries) {
+      const at = Number(entry.at)
+      if (!Number.isFinite(at) || at <= liveAt.current) continue
+      liveAt.current = at
+      if (entry.phase !== 'pre-step' && entry.phase !== 'model-request') continue
+      const workshop = entry.phase === 'model-request' ? 'model' : 'assembly'
+      queue.current.push({
+        seq: -at,
+        time: at,
+        workshop,
+        kind: `agent/${entry.phase}`,
+        label: typeof entry.label === 'string' ? entry.label : `agent/${entry.phase}`,
+        detail: `host 进程事件 · ${entry.phase}`,
+        status: '',
+      })
+      if (queue.current.length > 60) queue.current.shift()
+      added = true
+    }
+    if (!added) return
     syncQueue()
     if (!playingRef.current && !stepRef.current) setTick((value) => value + 1)
   }, [livePhase, syncQueue])
@@ -577,6 +594,7 @@ function PixelBuilding({ node, active, skipped, done, error }) {
   const left = cx - w / 2
   const top = cy - nh
   const height = nh - d / 2
+  const steel = ['assembly', 'model', 'tools', 'route'].includes(node.id)
   const topPoint = `${cx},${top - d / 2}`
   const topLeft = `${left},${top}`
   const topRight = `${left + w},${top}`
@@ -593,7 +611,35 @@ function PixelBuilding({ node, active, skipped, done, error }) {
     h('polygon', { points: sideFace, className: 'df-wall-side' }),
     h('rect', { x: left + 12, y: top + 18, width: 15, height: 11, className: 'df-window-3d' }),
     h('rect', { x: left + 38, y: top + 18, width: 15, height: 11, className: 'df-window-3d' }),
+    h('rect', { x: left + 22, y: cy - 26, width: 24, height: 26, className: 'df-door-glow' }),
     h('rect', { x: left + 24, y: cy - 24, width: 20, height: 24, className: 'df-door-3d' }),
+    h('rect', { x: cx - 9, y: top - d / 2 - 7, width: 18, height: 7, rx: 1, className: 'df-roof-vent' }),
+    node.id === 'orchestrate'
+      ? h('g', { className: 'df-dial', transform: `translate(${cx} ${top - d / 2 - 12})` },
+          h('circle', { cx: 0, cy: 0, r: 11 }),
+          h('line', { x1: 0, y1: 0, x2: 0, y2: -7 }),
+          h('line', { x1: 0, y1: 0, x2: 5, y2: 3 }),
+          h('circle', { cx: 0, cy: 0, r: 1.6, className: 'df-dial-pin' }),
+        )
+      : null,
+    node.id === 'route'
+      ? h('g', { className: 'df-switch', transform: `translate(${left + 18} ${cy - 12})` },
+          h('rect', { x: -6, y: -2, width: 12, height: 6, rx: 1 }),
+          h('line', { x1: 0, y1: 0, x2: 8, y2: -10, className: 'df-switch-lever' }),
+          h('circle', { cx: 8, cy: -10, r: 2.2, className: 'df-switch-knob' }),
+        )
+      : null,
+    node.id === 'intake' || node.id === 'exit'
+      ? h('path', { d: `M${left + 18} ${cy} V${cy - 30} Q${cx} ${cy - 42} ${left + w - 18} ${cy - 30} V${cy}`, className: 'df-arch' })
+      : null,
+    steel ? h('line', { x1: cx + 16, y1: top - d / 2, x2: cx + 16, y2: top - d / 2 - 16, className: 'df-antenna' }) : null,
+    steel ? h('circle', { cx: cx + 16, cy: top - d / 2 - 17, r: 2, className: 'df-antenna-tip' }) : null,
+    h('g', { className: 'df-puffs' },
+      h('circle', { cx: left + w - 24, cy: top - 34, r: 3.2 }),
+      h('circle', { cx: left + w - 18, cy: top - 41, r: 4.4 }),
+      h('circle', { cx: left + w - 26, cy: top - 48, r: 2.8 }),
+    ),
+    steel ? h('path', { d: `M${left + w + 7} ${top + 12} V${cy - 14}`, className: 'df-side-pipe' }) : null,
     h('rect', { x: left + w - 26, y: top - 24, width: 11, height: 24, className: 'df-chimney-3d' }),
     node.id === 'skill' ? h(Bookshelf, { x: left + 30, y: top + 34, theme: 'pixel' }) : null,
     active
@@ -729,11 +775,18 @@ function WorkerArt({ theme, active, walking, flip, carrying }) {
         h('rect', { x: 1, y: -6, width: 4, height: 7, className: 'df-worker-leg df-leg-r' }),
         h('rect', { x: -6, y: -29, width: 12, height: 4, className: 'df-worker-helmet' }),
       )
-  return h('g', { className: 'df-worker', 'data-active': active ? '1' : '0', 'data-walking': walking ? '1' : '0' },
-    h('ellipse', { cx: 0, cy: 1, rx: 10, ry: 3.5, className: 'df-worker-shadow' }),
-    h('g', { transform: `scale(${scale} 1)`, className: 'df-worker-scale' },
-      body,
-      carrying ? h('rect', { x: 7, y: -16, width: 11, height: 9, className: 'df-worker-carry' }) : null,
+  return h('g', { className: 'df-worker', 'data-active': active ? '1' : '0', 'data-walking': walking ? '1' : '0', 'data-carrying': carrying ? '1' : '0' },
+    h('g', { transform: `scale(${carrying ? 1.7 : 1.6})` },
+      h('g', { className: 'df-footprints' },
+        h('ellipse', { cx: -4, cy: 2, rx: 3.2, ry: 1.2 }),
+        h('ellipse', { cx: -13, cy: 3, rx: 2.8, ry: 1.1 }),
+        h('ellipse', { cx: -22, cy: 3.5, rx: 2.4, ry: 1 }),
+      ),
+      h('ellipse', { cx: 0, cy: 1, rx: 10, ry: 3.5, className: 'df-worker-shadow' }),
+      h('g', { transform: `scale(${scale} 1)`, className: 'df-worker-scale' },
+        body,
+        carrying ? h('rect', { x: 7, y: -16, width: 11, height: 9, className: 'df-worker-carry' }) : null,
+      ),
     ),
   )
 }
@@ -744,19 +797,22 @@ function Worker({ x, y, theme, active, walking, flip, carrying }) {
   )
 }
 
-function StationSign({ node, active, skipped, done, error }) {
-  const { cx, cy, w } = node
-  const width = Math.max(96, w + 6)
-  return h('g', { className: 'df-sign' },
-    h('rect', { x: cx - width / 2, y: cy + 5, width, height: 30, rx: 5, className: 'df-sign-bg' }),
-    h('circle', { cx: cx - width / 2 + 10, cy: cy + 20, r: 4, className: `df-sign-lamp ${active ? 'df-on' : ''} ${error ? 'df-bad' : ''} ${done ? 'df-ok' : ''}` }),
-    h('text', { x: cx - width / 2 + 20, y: cy + 18, className: 'df-station-name' }, node.name),
-    h('text', { x: cx - width / 2 + 20, y: cy + 30, className: 'df-station-sub' }, node.sub),
+function WallPlaque({ node, active, skipped, done, error }) {
+  const { cx, cy, w, h: nh } = node
+  const width = Math.min(88, Math.max(70, w * 0.56))
+  const y = cy - nh * 0.58
+  return h('g', { className: 'df-plaque' },
+    h('rect', { x: cx - width / 2, y, width, height: 21, rx: 3, className: 'df-plaque-bg' }),
+    h('line', { x1: cx - width / 2 + 4, y1: y + 2, x2: cx + width / 2 - 4, y2: y + 2, className: 'df-plaque-hi' }),
+    h('circle', { cx: cx - width / 2 + 7, cy: y + 10, r: 2.6, className: `df-sign-lamp ${active ? 'df-on' : ''} ${error ? 'df-bad' : ''} ${done ? 'df-ok' : ''}` }),
+    h('text', { x: cx - width / 2 + 14, y: y + 8, className: 'df-plaque-name' }, clip(node.name, 9)),
+    h('text', { x: cx - width / 2 + 14, y: y + 17, className: 'df-plaque-sub' }, clip(node.sub, 13)),
     skipped
-      ? h('text', { x: cx + width / 2 - 6, y: cy + 20, textAnchor: 'end', className: 'df-skip-badge' }, '跳过')
+      ? h('text', { x: cx + width / 2 - 4, y: y + 10, textAnchor: 'end', className: 'df-skip-badge' }, '跳过')
       : null,
   )
 }
+
 
 function Station({ node, view, display, playing, stepMode, selected, onSelect, theme }) {
   const stats = view?.workshops?.[node.id]
@@ -764,7 +820,8 @@ function Station({ node, view, display, playing, stepMode, selected, onSelect, t
   const active = display?.workshop === node.id && (playing || stepMode)
   const done = (stats?.used ?? 0) > 0 && !active && !skipped
   const error = view?.lastError?.workshop === node.id
-  const classes = ['df-station', `df-station-${node.id}`]
+  const material = ['assembly', 'model', 'tools', 'route'].includes(node.id) ? 'steel' : 'wood'
+  const classes = ['df-station', `df-station-${node.id}`, `df-material-${material}`]
   if (active) classes.push('df-active')
   if (skipped) classes.push('df-skipped')
   if (selected) classes.push('df-selected')
@@ -791,93 +848,9 @@ function Station({ node, view, display, playing, stepMode, selected, onSelect, t
       ? h(WaterTank, { node, active, skipped, done, error })
       : h(PixelBuilding, { node, active, skipped, done, error }),
     node.id === 'model' ? h(ModelExtras, { node, active, theme }) : null,
-    h(StationSign, { node, active, skipped, done, error }),
+    h(WallPlaque, { node, active, skipped, done, error }),
   )
 }
-
-function Crate({ x, y, scale = 1, theme }) {
-  const w = 26 * scale
-  const ch = 16 * scale
-  const d = 10 * scale
-  return h('g', { transform: `translate(${x} ${y})`, className: `df-crate ${theme === 'water' ? 'df-crate-water' : ''}` },
-    h('polygon', { points: `0,${-ch - d / 2} ${w / 2},${-ch} 0,${-ch + d / 2} ${-w / 2},${-ch}`, className: 'df-crate-top' }),
-    h('polygon', { points: `${-w / 2},${-ch} 0,${-ch + d / 2} 0,${d / 2} ${-w / 2},0`, className: 'df-crate-left' }),
-    h('polygon', { points: `0,${-ch + d / 2} ${w / 2},${-ch} ${w / 2},0 0,${d / 2}`, className: 'df-crate-right' }),
-    h('line', { x1: 0, y1: -ch - d / 2, x2: 0, y2: d / 2, className: 'df-crate-line' }),
-  )
-}
-
-function Barrel({ x, y, theme }) {
-  return h('g', { transform: `translate(${x} ${y})`, className: `df-barrel ${theme === 'water' ? 'df-barrel-water' : ''}` },
-    h('ellipse', { cx: 0, cy: 2, rx: 9, ry: 3, className: 'df-barrel-shadow' }),
-    h('rect', { x: -8, y: -20, width: 16, height: 20, rx: 4, className: 'df-barrel-body' }),
-    h('ellipse', { cx: 0, cy: -20, rx: 8, ry: 3, className: 'df-barrel-top' }),
-    h('line', { x1: -8, y1: -14, x2: 8, y2: -14, className: 'df-barrel-band' }),
-    h('line', { x1: -8, y1: -6, x2: 8, y2: -6, className: 'df-barrel-band' }),
-  )
-}
-
-function Lamp({ x, y, theme }) {
-  return h('g', { transform: `translate(${x} ${y})`, className: `df-lamp ${theme === 'water' ? 'df-lamp-water' : ''}` },
-    h('circle', { cx: 0, cy: -26, r: 16, className: 'df-lamp-glow' }),
-    h('line', { x1: 0, y1: 0, x2: 0, y2: -26, className: 'df-lamp-pole' }),
-    h('rect', { x: -3, y: -30, width: 6, height: 5, rx: 1, className: 'df-lamp-head' }),
-  )
-}
-
-function Decor({ theme }) {
-  const crates = [
-    { x: 150, y: 382, s: 1.1 },
-    { x: 185, y: 370, s: 0.8 },
-    { x: 890, y: 520, s: 1.0 },
-    { x: 920, y: 508, s: 0.75 },
-    { x: 700, y: 515, s: 0.9 },
-    { x: 310, y: 500, s: 0.8 },
-  ]
-  const barrels = [
-    { x: 716, y: 494 },
-    { x: 738, y: 506 },
-    { x: 900, y: 548 },
-    { x: 206, y: 426 },
-  ]
-  const lamps = [
-    { x: 300, y: 360 },
-    { x: 548, y: 300 },
-    { x: 900, y: 410 },
-    { x: 206, y: 420 },
-  ]
-  return h('g', { className: 'df-decor' },
-    h('g', { className: 'df-far-silhouette' },
-      h('polygon', { points: '120,250 180,220 250,245 190,275' }),
-      h('polygon', { points: '700,190 770,155 850,190 780,225' }),
-      h('polygon', { points: '400,110 450,85 510,110 460,135' }),
-      h('polygon', { points: '830,120 880,95 940,120 890,145' }),
-    ),
-    h('g', { className: 'df-ground-patches' },
-      h('ellipse', { cx: 300, cy: 360, rx: 110, ry: 34 }),
-      h('ellipse', { cx: 700, cy: 300, rx: 150, ry: 42 }),
-      h('ellipse', { cx: 520, cy: 470, rx: 120, ry: 30 }),
-    ),
-    theme === 'water'
-      ? h('g', { className: 'df-puddles' },
-          h('ellipse', { cx: 320, cy: 392, rx: 90, ry: 20 }),
-          h('ellipse', { cx: 700, cy: 238, rx: 120, ry: 26 }),
-          h('ellipse', { cx: 470, cy: 508, rx: 80, ry: 16 }),
-        )
-      : h('g', { className: 'df-grass' },
-          [[250, 330], [280, 344], [470, 300], [520, 330], [650, 350], [880, 460], [190, 450], [380, 520], [610, 520]].map(([x, y], index) =>
-            h('path', { key: index, d: `M${x} ${y} l-3 -8 M${x} ${y} l0 -10 M${x} ${y} l4 -7`, className: 'df-grass-tuft' }),
-          ),
-        ),
-    crates.map((item, index) => h(Crate, { key: `c${index}`, x: item.x, y: item.y, scale: item.s, theme })),
-    barrels.map((item, index) => h(Barrel, { key: `b${index}`, x: item.x, y: item.y, theme })),
-    lamps.map((item, index) => h(Lamp, { key: `l${index}`, x: item.x, y: item.y, theme })),
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/* Conveyor / pipe edges                                               */
-/* ------------------------------------------------------------------ */
 
 function Edge({ edge, display, playing, stepMode, view }) {
   const active = display?.workshop === edge.to && (playing || stepMode)
@@ -889,11 +862,23 @@ function Edge({ edge, display, playing, stepMode, view }) {
   if (active) classes.push('df-edge-active')
   if (skipActive) classes.push('df-edge-skip')
   if (errorActive) classes.push('df-edge-error')
+  if (edge.thin) {
+    return h('g', { className: classes.join(' ') },
+      h('path', { d: edge.d, className: 'df-service-line' }),
+      h('path', { d: edge.d, className: 'df-service-flow' }),
+      edge.label !== '' && edge.lx !== undefined
+        ? h('text', { x: edge.lx, y: edge.ly, textAnchor: 'middle', className: 'df-edge-label' }, edge.label)
+        : null,
+    )
+  }
   return h('g', { className: classes.join(' ') },
+    h('path', { d: edge.d, className: 'df-dirt-path' }),
     h('path', { d: edge.d, className: 'df-belt-shadow' }),
     h('path', { d: edge.d, className: 'df-belt-side' }),
     h('path', { d: edge.d, className: 'df-belt-top' }),
     h('path', { d: edge.d, className: 'df-belt-slats' }),
+    h('path', { d: edge.d, className: 'df-belt-rollers' }),
+    h('path', { d: edge.d, className: 'df-belt-legs' }),
     h('path', { d: edge.d, className: 'df-edge-flow' }),
     edge.label !== '' && edge.lx !== undefined
       ? h('text', { x: edge.lx, y: edge.ly, textAnchor: 'middle', className: 'df-edge-label' }, edge.label)
@@ -913,9 +898,9 @@ function boxPos(workshop) {
 }
 
 function BoxArt({ stage, skill, theme, active }) {
-  const w = 46
-  const bh = 30
-  const d = 20
+  const w = 50
+  const bh = 34
+  const d = 24
   const top = `0,${-bh - d / 2} ${w / 2},${-bh} 0,${-bh + d / 2} ${-w / 2},${-bh}`
   const left = `${-w / 2},${-bh} 0,${-bh + d / 2} 0,${d / 2} ${-w / 2},0`
   const right = `0,${-bh + d / 2} ${w / 2},${-bh} ${w / 2},0 0,${d / 2}`
@@ -1025,13 +1010,14 @@ function MaterialBox({ display, view, theme, active }) {
       className: `df-box ${animated ? 'df-box-animate' : ''}`,
       style: { transform: `translate(${position.x}px, ${position.y}px)` },
     },
+      h('ellipse', { cx: 0, cy: 8, rx: 52, ry: 16, className: 'df-spotlight' }),
       h('g', { key: display.seq },
         h(BoxArt, { stage, skill, theme, active }),
       ),
       h('text', { x: 0, y: 26, textAnchor: 'middle', className: 'df-box-caption' }, STAGE_LABEL[stage] ?? ''),
     ),
     h(Worker, {
-      x: position.x - 42,
+      x: position.x - 56,
       y: position.y + 2,
       theme,
       active: true,
@@ -1277,21 +1263,156 @@ function useVisibility(ref) {
   return visible
 }
 
+function Crate({ x, y, scale = 1, theme }) {
+  const w = 26 * scale
+  const ch = 16 * scale
+  const d = 10 * scale
+  return h('g', { transform: `translate(${x} ${y})`, className: `df-crate ${theme === 'water' ? 'df-crate-water' : ''}` },
+    h('polygon', { points: `0,${-ch - d / 2} ${w / 2},${-ch} 0,${-ch + d / 2} ${-w / 2},${-ch}`, className: 'df-crate-top' }),
+    h('polygon', { points: `${-w / 2},${-ch} 0,${-ch + d / 2} 0,${d / 2} ${-w / 2},0`, className: 'df-crate-left' }),
+    h('polygon', { points: `0,${-ch + d / 2} ${w / 2},${-ch} ${w / 2},0 0,${d / 2}`, className: 'df-crate-right' }),
+    h('line', { x1: 0, y1: -ch - d / 2, x2: 0, y2: d / 2, className: 'df-crate-line' }),
+  )
+}
+
+function Barrel({ x, y, theme }) {
+  return h('g', { transform: `translate(${x} ${y})`, className: `df-barrel ${theme === 'water' ? 'df-barrel-water' : ''}` },
+    h('ellipse', { cx: 0, cy: 2, rx: 9, ry: 3, className: 'df-barrel-shadow' }),
+    h('rect', { x: -8, y: -20, width: 16, height: 20, rx: 4, className: 'df-barrel-body' }),
+    h('ellipse', { cx: 0, cy: -20, rx: 8, ry: 3, className: 'df-barrel-top' }),
+    h('line', { x1: -8, y1: -14, x2: 8, y2: -14, className: 'df-barrel-band' }),
+    h('line', { x1: -8, y1: -6, x2: 8, y2: -6, className: 'df-barrel-band' }),
+  )
+}
+
+function Lamp({ x, y, theme }) {
+  return h('g', { transform: `translate(${x} ${y})`, className: `df-lamp ${theme === 'water' ? 'df-lamp-water' : ''}` },
+    h('circle', { cx: 0, cy: -26, r: 22, className: 'df-lamp-glow' }),
+    h('line', { x1: 0, y1: 0, x2: 0, y2: -26, className: 'df-lamp-pole' }),
+    h('rect', { x: -3, y: -30, width: 6, height: 5, rx: 1, className: 'df-lamp-head' }),
+  )
+}
+
+function Tank({ x, y, theme }) {
+  return h('g', { transform: `translate(${x} ${y})`, className: `df-mini-tank ${theme === 'water' ? 'df-mini-tank-water' : ''}` },
+    h('ellipse', { cx: 0, cy: 3, rx: 20, ry: 5, className: 'df-tank-shadow' }),
+    h('rect', { x: -15, y: -34, width: 30, height: 36, rx: 7, className: 'df-mini-tank-body' }),
+    h('ellipse', { cx: 0, cy: -34, rx: 15, ry: 5, className: 'df-mini-tank-top' }),
+    h('line', { x1: -15, y1: -22, x2: 15, y2: -22, className: 'df-mini-tank-band' }),
+    h('line', { x1: -15, y1: -12, x2: 15, y2: -12, className: 'df-mini-tank-band' }),
+  )
+}
+
+function Pipe({ d, theme, wide = 7 }) {
+  return h('g', { className: `df-pipe ${theme === 'water' ? 'df-pipe-water' : ''}` },
+    h('path', { d, className: 'df-pipe-casing', strokeWidth: wide + 5 }),
+    h('path', { d, className: 'df-pipe-core', strokeWidth: wide }),
+    h('path', { d, className: 'df-pipe-shine', strokeWidth: Math.max(1.5, wide / 3) }),
+  )
+}
+
+function Tree({ x, y, theme, scale = 1 }) {
+  return h('g', { transform: `translate(${x} ${y}) scale(${scale})`, className: `df-tree ${theme === 'water' ? 'df-tree-water' : ''}` },
+    h('ellipse', { cx: 0, cy: 2, rx: 14, ry: 4, className: 'df-tree-shadow' }),
+    h('rect', { x: -2.5, y: -20, width: 5, height: 20, className: 'df-tree-trunk' }),
+    h('circle', { cx: -7, cy: -26, r: 9, className: 'df-tree-canopy' }),
+    h('circle', { cx: 6, cy: -28, r: 10, className: 'df-tree-canopy' }),
+    h('circle', { cx: 0, cy: -36, r: 8, className: 'df-tree-canopy df-tree-canopy-2' }),
+  )
+}
+
+function Decor({ theme }) {
+  const crates = [
+    { x: 150, y: 382, s: 1.1 },
+    { x: 185, y: 370, s: 0.8 },
+    { x: 890, y: 520, s: 1.0 },
+    { x: 920, y: 508, s: 0.75 },
+    { x: 700, y: 515, s: 0.9 },
+    { x: 310, y: 500, s: 0.8 },
+  ]
+  const barrels = [
+    { x: 716, y: 494 },
+    { x: 738, y: 506 },
+    { x: 900, y: 548 },
+    { x: 206, y: 426 },
+  ]
+  const lamps = [
+    { x: 300, y: 360 },
+    { x: 548, y: 300 },
+    { x: 900, y: 410 },
+    { x: 206, y: 420 },
+  ]
+  return h('g', { className: 'df-decor' },
+    h('g', { className: 'df-far-silhouette' },
+      h('polygon', { points: '120,250 180,220 250,245 190,275' }),
+      h('polygon', { points: '700,190 770,155 850,190 780,225' }),
+      h('polygon', { points: '400,110 450,85 510,110 460,135' }),
+      h('polygon', { points: '830,120 880,95 940,120 890,145' }),
+    ),
+    h('g', { className: 'df-ground-patches' },
+      h('ellipse', { cx: 300, cy: 360, rx: 110, ry: 34 }),
+      h('ellipse', { cx: 700, cy: 300, rx: 150, ry: 42 }),
+      h('ellipse', { cx: 520, cy: 470, rx: 120, ry: 30 }),
+    ),
+    theme === 'water'
+      ? h('g', { className: 'df-puddles' },
+          h('ellipse', { cx: 320, cy: 392, rx: 90, ry: 20 }),
+          h('ellipse', { cx: 700, cy: 238, rx: 120, ry: 26 }),
+          h('ellipse', { cx: 470, cy: 508, rx: 80, ry: 16 }),
+        )
+      : h('g', { className: 'df-grass' },
+          [[250, 330], [280, 344], [470, 300], [520, 330], [650, 350], [880, 460], [190, 450], [380, 520], [610, 520]].map(([x, y], index) =>
+            h('path', { key: index, d: `M${x} ${y} l-3 -8 M${x} ${y} l0 -10 M${x} ${y} l4 -7`, className: 'df-grass-tuft' }),
+          ),
+        ),
+    h(Tank, { x: 900, y: 220, theme }),
+    h(Tank, { x: 958, y: 420, theme }),
+    h(Tank, { x: 90, y: 470, theme }),
+    h(Pipe, { d: 'M700 200 H760 V250', theme, wide: 6 }),
+    h(Pipe, { d: 'M540 420 H590 V478 H700', theme, wide: 6 }),
+    h(Pipe, { d: 'M320 340 V388 H380', theme, wide: 5 }),
+    h('g', { className: 'df-fence' },
+      h('line', { x1: 120, y1: 534, x2: 880, y2: 534, className: 'df-fence-rail' }),
+      h('line', { x1: 120, y1: 526, x2: 880, y2: 526, className: 'df-fence-rail df-fence-rail-2' }),
+      [140, 200, 260, 320, 380, 440, 500, 560, 620, 680, 740, 800, 860].map((x) =>
+        h('rect', { key: x, x, y: 516, width: 3, height: 22, className: 'df-fence-post' }),
+      ),
+    ),
+    h('g', { className: 'df-flowers' },
+      [[180, 480], [230, 500], [330, 470], [480, 540], [560, 500], [660, 465], [760, 535], [860, 500], [420, 300], [640, 320]].map(([x, y], index) =>
+        h('circle', { key: index, cx: x, cy: y, r: 1.6, className: index % 3 === 0 ? 'df-flower-a' : index % 3 === 1 ? 'df-flower-b' : 'df-flower-c' }),
+      ),
+    ),
+    h(Tree, { x: 120, y: 520, theme, scale: 1.1 }),
+    h(Tree, { x: 980, y: 190, theme, scale: 0.9 }),
+    h(Tree, { x: 60, y: 220, theme, scale: 0.8 }),
+    h(Tree, { x: 880, y: 560, theme, scale: 0.75 }),
+    crates.map((item, index) => h(Crate, { key: `c${index}`, x: item.x, y: item.y, scale: item.s, theme })),
+    barrels.map((item, index) => h(Barrel, { key: `b${index}`, x: item.x, y: item.y, theme })),
+    lamps.map((item, index) => h(Lamp, { key: `l${index}`, x: item.x, y: item.y, theme })),
+  )
+}
+
 function IsoFloor({ theme }) {
-  const floor = 'M500 44 L978 296 L500 548 L22 296 Z'
+  const ellipse = { cx: 500, cy: 300, rx: 650, ry: 350 }
   return h('g', { className: 'df-iso-floor' },
-    h('polygon', { points: floor, className: 'df-iso-base' }),
-    h('polygon', { points: floor, className: 'df-iso-grid' }),
+    h('ellipse', { ...ellipse, className: 'df-ground-base', style: { fill: theme === 'water' ? 'url(#df-ground-water)' : 'url(#df-ground)' } }),
+    h('ellipse', { ...ellipse, className: 'df-ground-grid' }),
+    h('rect', { x: 0, y: 0, width: 1000, height: 560, className: 'df-ground-fade' }),
+    h('rect', { x: 0, y: 0, width: 1000, height: 560, className: 'df-ground-noise' }),
     h('path', { d: 'M500 44 L500 548 M22 296 L978 296', className: 'df-iso-axis' }),
-    h('path', { d: 'M500 44 L978 296 L500 548 L22 296 Z', className: 'df-iso-rim' }),
     h('g', { className: 'df-far-wall' },
       h('path', { d: 'M22 296 L500 44 L978 296', className: 'df-far-wall-line' }),
       h('path', { d: 'M60 276 L500 60 L940 276', className: 'df-far-wall-line df-far-wall-line-2' }),
     ),
     theme === 'water'
       ? h('g', { className: 'df-floor-water' },
+          h('path', { d: 'M0 410 Q240 370 500 408 T1000 380', className: 'df-canal' }),
           h('ellipse', { cx: 310, cy: 392, rx: 150, ry: 48 }),
           h('ellipse', { cx: 690, cy: 220, rx: 170, ry: 54 }),
+          h('circle', { cx: 360, cy: 390, r: 2.5, className: 'df-foam' }),
+          h('circle', { cx: 620, cy: 396, r: 2, className: 'df-foam' }),
+          h('circle', { cx: 820, cy: 386, r: 2.2, className: 'df-foam' }),
         )
       : null,
   )
@@ -1301,14 +1422,14 @@ function IsoFloor({ theme }) {
 /* Board                                                               */
 /* ------------------------------------------------------------------ */
 
-function Toolbar({ view, theme, setTheme, speed, setSpeed, stepMode, setStepMode, queue, step, skip, replay, replayEvents, liveRunning, livePhase }) {
+function Toolbar({ view, display, theme, setTheme, speed, setSpeed, stepMode, setStepMode, queue, step, skip, replay, replayEvents, liveRunning, livePhase }) {
   const running = view?.running === true && liveRunning !== false
   const status = running ? '运行中' : view ? '空闲' : '等待投影'
   return h('div', { className: 'df-toolbar' },
     h('div', { className: 'df-brand' },
       h('span', { className: 'df-brand-mark' }, '▦'),
       h('div', null,
-        h('div', { className: 'df-brand-title' }, '工厂蓝图'),
+        h('div', { className: 'df-brand-title' }, 'DSH FACTORY · 工厂蓝图'),
         h('div', { className: 'df-brand-sub' }, 'DSH Agent 内部结构 · 真实事件驱动'),
       ),
     ),
@@ -1320,6 +1441,9 @@ function Toolbar({ view, theme, setTheme, speed, setSpeed, stepMode, setStepMode
       queue.length > 0 ? h('span', { className: 'df-pill df-pill-live' }, `播放队列 ${queue.length}`) : null,
       livePhase !== null && livePhase !== undefined && running
         ? h('span', { className: 'df-pill df-pill-live' }, `LIVE · ${clip(livePhase.label ?? livePhase.phase, 26)}`)
+        : null,
+      display !== null && display !== undefined
+        ? h('span', { className: 'df-pill df-pill-event' }, `▶ ${clip(display.label, 34)}`)
         : null,
     ),
     h('div', { className: 'df-controls' },
@@ -1380,6 +1504,7 @@ function FactoryBoard({ view, liveRunning, livePhase, theme, setTheme, speed, se
   return h('div', { ref: rootRef, className: `df-root df-theme-${theme} ${compact ? 'df-compact' : ''} ${visible ? '' : 'df-paused'}` },
     h(Toolbar, {
       view,
+      display,
       theme,
       setTheme,
       speed,
@@ -1412,7 +1537,48 @@ function FactoryBoard({ view, liveRunning, livePhase, theme, setTheme, speed, se
             h('circle', { cx: 76, cy: 14, r: 1.4, fill: 'currentColor', opacity: 0.2 }),
           ),
           h('pattern', { id: 'df-iso-grid', width: 64, height: 32, patternUnits: 'userSpaceOnUse' },
-            h('path', { d: 'M0 16 L32 0 L64 16 L32 32 Z', fill: 'none', stroke: 'currentColor', strokeWidth: 0.7, opacity: 0.28 }),
+            h('path', { d: 'M0 16 L32 0 L64 16 L32 32 Z', fill: 'none', stroke: '#9aa68f', strokeWidth: 0.7, opacity: 0.42 }),
+          ),
+          h('linearGradient', { id: 'df-ground', x1: '0', y1: '0', x2: '0', y2: '1' },
+            h('stop', { offset: '0%', stopColor: '#7a8a72', stopOpacity: 1 }),
+            h('stop', { offset: '58%', stopColor: '#5f725f', stopOpacity: 1 }),
+            h('stop', { offset: '100%', stopColor: '#4a5c4c', stopOpacity: 1 }),
+          ),
+          h('linearGradient', { id: 'df-ground-water', x1: '0', y1: '0', x2: '0', y2: '1' },
+            h('stop', { offset: '0%', stopColor: '#2a4a48', stopOpacity: 1 }),
+            h('stop', { offset: '58%', stopColor: '#1f3a39', stopOpacity: 1 }),
+            h('stop', { offset: '100%', stopColor: '#172c2d', stopOpacity: 1 }),
+          ),
+          h('radialGradient', { id: 'df-spot', cx: '50%', cy: '50%', r: '50%' },
+            h('stop', { offset: '0%', stopColor: '#e0cfa7', stopOpacity: 0.22 }),
+            h('stop', { offset: '100%', stopColor: '#e0cfa7', stopOpacity: 0 }),
+          ),
+          h('radialGradient', { id: 'df-sky-glow', cx: '50%', cy: '100%', r: '70%' },
+            h('stop', { offset: '0%', stopColor: '#c19a5b', stopOpacity: 0.18 }),
+            h('stop', { offset: '100%', stopColor: '#c19a5b', stopOpacity: 0 }),
+          ),
+          h('radialGradient', { id: 'df-sky-glow-water', cx: '50%', cy: '100%', r: '70%' },
+            h('stop', { offset: '0%', stopColor: '#8fb0a8', stopOpacity: 0.14 }),
+            h('stop', { offset: '100%', stopColor: '#8fb0a8', stopOpacity: 0 }),
+          ),
+          h('radialGradient', { id: 'df-ground-fade', cx: '50%', cy: '50%', r: '72%' },
+            h('stop', { offset: '58%', stopColor: '#1b1a18', stopOpacity: 0 }),
+            h('stop', { offset: '82%', stopColor: '#1b1a18', stopOpacity: 0.28 }),
+            h('stop', { offset: '100%', stopColor: '#1b1a18', stopOpacity: 0.88 }),
+          ),
+          h('pattern', { id: 'df-noise', width: 28, height: 28, patternUnits: 'userSpaceOnUse' },
+            h('circle', { cx: 5, cy: 6, r: 1, fill: '#ece6d8', opacity: 0.05 }),
+            h('circle', { cx: 17, cy: 14, r: 0.8, fill: '#ece6d8', opacity: 0.04 }),
+            h('circle', { cx: 24, cy: 4, r: 0.7, fill: '#ece6d8', opacity: 0.035 }),
+            h('circle', { cx: 9, cy: 22, r: 0.8, fill: '#ece6d8', opacity: 0.04 }),
+          ),
+          h('linearGradient', { id: 'df-haze', x1: '0', y1: '0', x2: '0', y2: '1' },
+            h('stop', { offset: '0%', stopColor: '#8a9483', stopOpacity: 0.18 }),
+            h('stop', { offset: '100%', stopColor: '#8a9483', stopOpacity: 0 }),
+          ),
+          h('radialGradient', { id: 'df-lamp-glow', cx: '50%', cy: '50%', r: '50%' },
+            h('stop', { offset: '0%', stopColor: '#d6b06a', stopOpacity: 0.32 }),
+            h('stop', { offset: '100%', stopColor: '#d6b06a', stopOpacity: 0 }),
           ),
           h('radialGradient', { id: 'df-water-glow', cx: '50%', cy: '50%', r: '50%' },
             h('stop', { offset: '0%', stopColor: 'currentColor', stopOpacity: 0.18 }),
@@ -1420,55 +1586,60 @@ function FactoryBoard({ view, liveRunning, livePhase, theme, setTheme, speed, se
           ),
           h('radialGradient', { id: 'df-vignette', cx: '50%', cy: '46%', r: '72%' },
             h('stop', { offset: '58%', stopColor: '#1b1a18', stopOpacity: 0 }),
-            h('stop', { offset: '100%', stopColor: '#1b1a18', stopOpacity: 0.62 }),
+            h('stop', { offset: '100%', stopColor: '#1b1a18', stopOpacity: 0.24 }),
           ),
           h('linearGradient', { id: 'df-fog', x1: '0', y1: '0', x2: '0', y2: '1' },
             h('stop', { offset: '0%', stopColor: '#ece6d8', stopOpacity: 0 }),
             h('stop', { offset: '78%', stopColor: '#ece6d8', stopOpacity: 0 }),
-            h('stop', { offset: '100%', stopColor: '#ece6d8', stopOpacity: 0.06 }),
+            h('stop', { offset: '100%', stopColor: '#ece6d8', stopOpacity: 0.035 }),
           ),
           h('radialGradient', { id: 'df-light', cx: '50%', cy: '40%', r: '60%' },
-            h('stop', { offset: '0%', stopColor: '#c19a5b', stopOpacity: 0.14 }),
+            h('stop', { offset: '0%', stopColor: '#c19a5b', stopOpacity: 0.2 }),
             h('stop', { offset: '100%', stopColor: '#c19a5b', stopOpacity: 0 }),
           ),
         ),
-        h('rect', { x: 0, y: 0, width: 1000, height: 560, className: 'df-floor' }),
-        h(IsoFloor, { theme }),
-        h(Decor, { theme }),
-        EDGES.map((edge) => h(Edge, {
-          key: edge.id,
-          edge,
-          display,
-          playing: playback.playing,
-          stepMode,
-          view,
-        })),
-        WORKSHOP_IDS.map((id) => h(Station, {
-          key: id,
-          node: { ...NODES[id], id },
-          view,
-          display,
-          playing: playback.playing,
-          stepMode,
-          selected: selected === id,
-          onSelect: setSelected,
-          theme,
-        })),
-        h(Station, { node: { ...NODES.intake, id: 'intake' }, view, display, playing: playback.playing, stepMode, selected: selected === 'intake', onSelect: setSelected, theme }),
-        h(Station, { node: { ...NODES.exit, id: 'exit' }, view, display, playing: playback.playing, stepMode, selected: selected === 'exit', onSelect: setSelected, theme }),
-        h(PatrolWorker, { theme, running: view?.running === true || playback.playing, from: { x: 156, y: 314 }, to: { x: 246, y: 302 } }),
-        h(PatrolWorker, { theme, running: view?.running === true || playback.playing, from: { x: 762, y: 330 }, to: { x: 898, y: 316 } }),
-        WORKER_POSTS.map((post) => h(Worker, {
-          key: post.id,
-          x: post.x,
-          y: post.y,
-          theme,
-          active: display?.workshop === post.id && (playback.playing || stepMode),
-          walking: false,
-          flip: post.flip === true,
-          carrying: false,
-        })),
-        h(MaterialBox, { display, view, theme, active }),
+        h('g', { className: 'df-scene', transform: 'translate(20 11) scale(0.96)' },
+          h('rect', { x: 0, y: 0, width: 1000, height: 560, className: 'df-floor' }),
+          h('rect', { x: 0, y: 0, width: 1000, height: 280, className: 'df-sky-glow', style: { fill: theme === 'water' ? 'url(#df-sky-glow-water)' : 'url(#df-sky-glow)' } }),
+          h('rect', { x: 0, y: 0, width: 1000, height: 300, className: 'df-haze' }),
+          h('ellipse', { cx: 500, cy: 250, rx: 430, ry: 230, className: 'df-ambient' }),
+          h(IsoFloor, { theme }),
+          h(Decor, { theme }),
+          EDGES.map((edge) => h(Edge, {
+            key: edge.id,
+            edge,
+            display,
+            playing: playback.playing,
+            stepMode,
+            view,
+          })),
+          WORKSHOP_IDS.map((id) => h(Station, {
+            key: id,
+            node: { ...NODES[id], id },
+            view,
+            display,
+            playing: playback.playing,
+            stepMode,
+            selected: selected === id,
+            onSelect: setSelected,
+            theme,
+          })),
+          h(Station, { node: { ...NODES.intake, id: 'intake' }, view, display, playing: playback.playing, stepMode, selected: selected === 'intake', onSelect: setSelected, theme }),
+          h(Station, { node: { ...NODES.exit, id: 'exit' }, view, display, playing: playback.playing, stepMode, selected: selected === 'exit', onSelect: setSelected, theme }),
+          h(PatrolWorker, { theme, running: view?.running === true || playback.playing, from: { x: 156, y: 314 }, to: { x: 246, y: 302 } }),
+          h(PatrolWorker, { theme, running: view?.running === true || playback.playing, from: { x: 762, y: 330 }, to: { x: 898, y: 316 } }),
+          WORKER_POSTS.map((post) => h(Worker, {
+            key: post.id,
+            x: post.x,
+            y: post.y,
+            theme,
+            active: display?.workshop === post.id && (playback.playing || stepMode),
+            walking: false,
+            flip: post.flip === true,
+            carrying: false,
+          })),
+          h(MaterialBox, { display, view, theme, active }),
+        ),
         h('rect', { x: 0, y: 0, width: 1000, height: 560, className: 'df-vignette', 'pointer-events': 'none' }),
         h('rect', { x: 0, y: 0, width: 1000, height: 560, className: 'df-fog', 'pointer-events': 'none' }),
       ),
@@ -1531,6 +1702,25 @@ function Modal({ title, onClose, children }) {
   return content
 }
 
+class FactoryBoundary extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = { error: null }
+  }
+  static getDerivedStateFromError(error) {
+    return { error }
+  }
+  componentDidCatch(error) {
+    console.error('dsh-factory crashed', error)
+  }
+  render() {
+    if (this.state.error !== null) {
+      return h('pre', { className: 'df-crash' }, String(this.state.error?.stack || this.state.error))
+    }
+    return this.props.children
+  }
+}
+
 function FactoryView(props) {
   const { view, liveRunning } = useFactoryView(props)
   const running = view?.running === true && liveRunning !== false
@@ -1543,7 +1733,7 @@ function FactoryView(props) {
     writeLocal(SPEED_KEY, String(speed))
   }, [speed])
   return h('div', { className: 'df-view' },
-    h(FactoryBoard, {
+    h(FactoryBoundary, null, h(FactoryBoard, {
       view,
       liveRunning,
       livePhase,
@@ -1555,7 +1745,7 @@ function FactoryView(props) {
       setStepMode,
       compact: false,
       libraryValue,
-    }),
+    })),
   )
 }
 
@@ -1603,7 +1793,7 @@ function FactoryStrip(props) {
     ),
     open
       ? h(Modal, { title: '工厂蓝图 · 对话上方展开', onClose: () => setOpen(false) },
-          h(FactoryBoard, {
+          h(FactoryBoundary, null, h(FactoryBoard, {
             view,
             liveRunning,
             livePhase,
@@ -1615,7 +1805,7 @@ function FactoryStrip(props) {
             setStepMode,
             compact: false,
             libraryValue,
-          }),
+          })),
         )
       : null,
   )
@@ -1748,13 +1938,24 @@ const CSS = `
 .df-board { position: relative; aspect-ratio: 1000 / 560; background: var(--df-bg); overflow: hidden; }
 .df-svg { display: block; width: 100%; height: 100%; color: var(--df-muted); }
 .df-floor { fill: var(--df-bg); }
-.df-iso-base { fill: color-mix(in srgb, var(--df-bg) 74%, #000); }
+.df-ground-base { fill: url(#df-ground); }
+.df-ground-grid { fill: url(#df-iso-grid); opacity: .3; }
+.df-ground-fade { fill: url(#df-ground-fade); pointer-events: none; }
+.df-ground-noise { fill: url(#df-noise); pointer-events: none; }
+.df-dirt-path { fill: none; stroke: #6b5a3f; stroke-width: 38; stroke-linecap: round; opacity: .16; transform: translate(2px, 8px); }
+.df-belt-rollers { fill: none; stroke: #d6b06a; stroke-width: 3; stroke-dasharray: 1 18; opacity: .55; }
+.df-door-glow { fill: #d6b06a; opacity: .18; filter: blur(2px); }
+.df-roof-vent { fill: #6b675c; stroke: #4a463d; stroke-width: 1; }
+.df-side-pipe { fill: none; stroke: #c19a5b; stroke-width: 3; opacity: .5; }
+.df-iso-base { fill: url(#df-ground); }
 .df-iso-grid { fill: url(#df-iso-grid); }
-.df-iso-axis { fill: none; stroke: color-mix(in srgb, var(--df-accent) 18%, transparent); stroke-width: 1; stroke-dasharray: 2 9; }
-.df-iso-rim { fill: none; stroke: color-mix(in srgb, var(--df-accent) 32%, transparent); stroke-width: 1.6; }
-.df-far-wall-line { fill: none; stroke: color-mix(in srgb, var(--df-accent) 24%, transparent); stroke-width: 1; opacity: .5; }
+.df-iso-axis { fill: none; stroke: #7f8a7b; stroke-width: 1; stroke-dasharray: 2 9; opacity: .28; }
+.df-iso-rim { fill: none; stroke: #7f8a7b; stroke-width: 1.4; opacity: .45; }
+.df-far-wall-line { fill: none; stroke: #7f8a7b; stroke-width: 1; opacity: .28; }
 .df-far-wall-line-2 { opacity: .22; }
-.df-floor-water ellipse { fill: color-mix(in srgb, var(--df-accent) 7%, transparent); }
+.df-floor-water ellipse { fill: color-mix(in srgb, var(--df-accent) 8%, transparent); }
+.df-canal { fill: none; stroke: #7fd3d0; stroke-width: 54; stroke-linecap: round; opacity: .12; }
+.df-foam { fill: #e8fffb; opacity: .45; }
 .df-theme-pixel .df-floor-water { display: none; }
 
 /* Station 3D bodies */
@@ -1794,11 +1995,11 @@ const CSS = `
 
 /* Water tank 3D */
 .df-tank-3d { fill: color-mix(in srgb, var(--df-accent) 22%, #22383a); stroke: color-mix(in srgb, var(--df-accent) 65%, #fff 8%); stroke-width: 1.8; }
-.df-tank-top { fill: color-mix(in srgb, var(--df-accent) 48%, #dff7ff 20%); stroke: color-mix(in srgb, var(--df-accent) 70%, #fff 10%); stroke-width: 1.4; }
+.df-tank-top { fill: #c9e8e2; stroke: #f2fffb; stroke-width: 1.4; }
 .df-water-line { fill: none; stroke: #c9ddd6; stroke-width: 2; opacity: .55; }
-.df-tank-gauge { fill: color-mix(in srgb, var(--df-accent) 30%, transparent); stroke: color-mix(in srgb, var(--df-accent) 50%, transparent); stroke-width: 1; }
-.df-valve { fill: var(--df-panel); stroke: var(--df-accent); stroke-width: 2; }
-.df-valve-line { stroke: var(--df-accent); stroke-width: 2; }
+.df-tank-gauge { fill: #c9e8e2; opacity: .35; stroke: #eefaf7; stroke-width: 1; }
+.df-valve { fill: #c19a5b; stroke: #e0cfa7; stroke-width: 2; }
+.df-valve-line { stroke: #2a2723; stroke-width: 2; }
 .df-pipe-out { fill: none; stroke: color-mix(in srgb, var(--df-accent) 55%, #22383a); stroke-width: 9; stroke-linecap: round; }
 .df-bubble { fill: #dcebe6; opacity: .55; animation: df-bubble 2.8s ease-in-out infinite; }
 .df-bubble-b { animation-delay: .7s; }
@@ -1816,14 +2017,27 @@ const CSS = `
 .df-theme-water .df-chimney-3d, .df-theme-water .df-plinth, .df-theme-water .df-smoke,
 .df-theme-water .df-piston, .df-theme-water .df-robot-arm, .df-theme-water .df-crane { display: none; }
 
+.df-material-steel .df-roof-3d { fill: #a8a293; stroke: #5a554b; }
+.df-material-steel .df-wall-left { fill: #837e72; stroke: #5a554b; }
+.df-material-steel .df-wall-right { fill: #6b675c; stroke: #5a554b; }
+.df-material-steel .df-wall-side { fill: #555147; stroke: #45423a; }
+.df-material-steel .df-window-3d { fill: #d6b06a; opacity: .85; }
+.df-material-steel .df-roof-hi { stroke: #e0d8c4; opacity: .6; }
+.df-material-wood .df-roof-3d { fill: #a97f50; stroke: #5a3b28; }
+.df-material-wood .df-wall-left { fill: #8a6644; stroke: #5a3b28; }
+.df-material-wood .df-wall-right { fill: #6f5138; stroke: #5a3b28; }
+.df-material-wood .df-wall-side { fill: #5a412d; stroke: #4a3424; }
+.df-material-wood .df-roof-hi { stroke: #e0cfa7; opacity: .5; }
+.df-ambient { fill: url(#df-light); }
 /* Station signs */
-.df-sign-bg { fill: color-mix(in srgb, var(--df-panel) 93%, transparent); stroke: var(--df-line); stroke-width: 1; }
-.df-sign-lamp { fill: var(--df-muted); }
+.df-sign-bg { fill: #2a2723; stroke: #c19a5b; stroke-width: .7; opacity: .9; }
+.df-sign-hi { stroke: #c19a5b; stroke-width: .8; opacity: .45; }
+.df-sign-lamp { fill: #8a8578; }
 .df-sign-lamp.df-on { fill: var(--df-accent); filter: drop-shadow(0 0 5px var(--df-accent)); animation: df-pulse 1.1s ease-in-out infinite; }
 .df-sign-lamp.df-ok { fill: var(--df-green); }
 .df-sign-lamp.df-bad { fill: var(--df-red); }
-.df-station-name { fill: var(--df-text); font-size: 12px; font-weight: 700; }
-.df-station-sub { fill: var(--df-muted); font-size: 8.5px; }
+.df-station-name { fill: #ece6d8; font-size: 10.5px; font-weight: 700; }
+.df-station-sub { fill: #a39b8c; font-size: 7.5px; }
 .df-skip-badge { fill: var(--df-amber); font-size: 9px; font-weight: 700; letter-spacing: .04em; }
 .df-check { fill: var(--df-green); font-size: 14px; font-weight: 800; }
 
@@ -1841,10 +2055,10 @@ const CSS = `
 .df-edge-error .df-belt-slats { stroke: color-mix(in srgb, var(--df-red) 55%, #1a120a); }
 .df-edge-skip .df-belt-top { stroke: var(--df-amber); stroke-dasharray: 7 7; }
 .df-edge-label { fill: var(--df-faint); font-size: 8.5px; letter-spacing: .04em; paint-order: stroke; stroke: var(--df-bg); stroke-width: 2.5px; }
-.df-theme-water .df-belt-shadow { stroke-width: 28; }
-.df-theme-water .df-belt-side { stroke: #1d3438; stroke-width: 23; }
+.df-theme-water .df-belt-shadow { stroke-width: 30; }
+.df-theme-water .df-belt-side { stroke: #0d2528; stroke-width: 25; }
 .df-theme-water .df-belt-top { stroke: color-mix(in srgb, var(--df-accent) 48%, #1d3438); stroke-width: 16; }
-.df-theme-water .df-belt-slats { stroke: #d8e8e2; stroke-width: 3; stroke-dasharray: 5 15; opacity: .6; }
+.df-theme-water .df-belt-slats { stroke: #e8fffb; stroke-width: 3; stroke-dasharray: 5 15; opacity: .9; }
 .df-theme-water .df-edge-flow { stroke: #d8e8e2; }
 
 /* Workers */
@@ -1909,7 +2123,7 @@ const CSS = `
   box-shadow: 0 12px 30px rgba(0,0,0,.32); backdrop-filter: blur(8px); color: var(--df-text);
 }
 .df-overlay-title { font-size: 10px; font-weight: 700; color: var(--df-accent); letter-spacing: .05em; margin-bottom: 6px; }
-.df-skill-scan { left: 43%; top: 70%; transform: translate(-50%, -50%); width: 330px; }
+.df-skill-scan { left: 66%; top: 62%; transform: translate(-50%, -50%); width: 330px; }
 .df-tool-window { left: 62%; top: 55%; transform: translate(-50%, -50%); width: 330px; }
 .df-route-gate { left: 61%; top: 30%; transform: translate(-50%, -50%); width: 280px; }
 .df-skill-beam { position: absolute; left: 12px; right: 12px; height: 2px; top: 30px; background: linear-gradient(90deg, transparent, var(--df-accent), transparent); animation: df-beam 1.4s ease-in-out infinite; }
@@ -2064,10 +2278,10 @@ const CSS = `
   100% { transform: translate(var(--df-patrol-x2), var(--df-patrol-y2)); }
 }
 /* Environment decor */
-.df-far-silhouette polygon { fill: var(--df-deep); opacity: .26; }
-.df-ground-patches ellipse { fill: var(--df-wood-dark); opacity: .12; }
-.df-grass-tuft { stroke: var(--df-teal); stroke-width: 1; opacity: .32; fill: none; }
-.df-puddles ellipse { fill: var(--df-teal); opacity: .14; }
+.df-far-silhouette polygon { fill: #2b332e; opacity: .55; }
+.df-ground-patches ellipse { fill: #5f6b5e; opacity: .28; }
+.df-grass-tuft { stroke: #7fa98f; stroke-width: 1; opacity: .5; fill: none; }
+.df-puddles ellipse { fill: #7fa9a1; opacity: .22; }
 .df-crate-top { fill: var(--df-wood-light); stroke: var(--df-stroke-wood); stroke-width: 1.2; }
 .df-crate-left { fill: var(--df-wood); stroke: var(--df-stroke-wood); stroke-width: 1.2; }
 .df-crate-right { fill: var(--df-wood-dark); stroke: var(--df-stroke-wood); stroke-width: 1.2; }
@@ -2081,16 +2295,84 @@ const CSS = `
 .df-barrel-band { stroke: var(--df-brass-dark); stroke-width: 1.4; opacity: .8; }
 .df-barrel-water .df-barrel-body { fill: var(--df-teal); }
 .df-barrel-water .df-barrel-top { fill: var(--df-teal-light); }
-.df-lamp-glow { fill: var(--df-brass); opacity: .12; }
+.df-lamp-glow { fill: url(#df-lamp-glow); opacity: .85; }
 .df-lamp-pole { stroke: var(--df-stroke-steel); stroke-width: 2; }
 .df-lamp-head { fill: var(--df-cream); stroke: var(--df-stroke-steel); stroke-width: 1; }
 .df-lamp-water .df-lamp-glow { fill: var(--df-teal-light); opacity: .14; }
 .df-vignette { fill: url(#df-vignette); }
+.df-haze { fill: url(#df-haze); pointer-events: none; }
 .df-fog { fill: url(#df-fog); }
 .df-roof-hi { fill: none; stroke: var(--df-cream); stroke-width: 1.2; opacity: .28; }
 .df-tank-hi { fill: none; stroke: var(--df-steam); stroke-width: 1.4; opacity: .32; }
 .df-box-hi { fill: none; stroke: var(--df-cream); stroke-width: 1.2; opacity: .34; }
-.df-shadow { fill: var(--df-shadow); opacity: .36; filter: blur(2px); }
+.df-shadow { fill: var(--df-shadow); opacity: .3; filter: blur(2px); }
+/* Extra props */
+.df-tank-shadow { fill: var(--df-shadow); opacity: .35; }
+.df-mini-tank-body { fill: #837e72; stroke: #5a554b; stroke-width: 1.2; }
+.df-mini-tank-top { fill: #a8a293; stroke: #5a554b; stroke-width: 1; }
+.df-mini-tank-band { stroke: #c19a5b; stroke-width: 1.4; opacity: .6; }
+.df-mini-tank-water .df-mini-tank-body { fill: #5f9a94; }
+.df-mini-tank-water .df-mini-tank-top { fill: #c9e8e2; }
+.df-pipe-casing { fill: none; stroke: #3a4a46; stroke-linecap: round; stroke-linejoin: round; opacity: .9; }
+.df-pipe-core { fill: none; stroke: #6f8a84; stroke-linecap: round; stroke-linejoin: round; }
+.df-pipe-shine { fill: none; stroke: #c9ddd6; stroke-linecap: round; opacity: .35; }
+.df-pipe-water .df-pipe-core { stroke: #5f827c; }
+.df-tree-shadow { fill: var(--df-shadow); opacity: .35; }
+.df-tree-trunk { fill: #5a4632; }
+.df-tree-canopy { fill: #4f6b52; stroke: #3a4f3c; stroke-width: 1; }
+.df-tree-canopy-2 { fill: #5f7d5f; }
+.df-tree-water .df-tree-canopy { fill: #3f5f5c; stroke: #2f4f4c; }
+.df-tree-water .df-tree-canopy-2 { fill: #4f7a78; }
+.df-belt-legs { fill: none; stroke: #3a2b20; stroke-width: 6; stroke-dasharray: 3 26; opacity: .5; transform: translate(0, 16px); }
+/* Atmosphere */
+.df-puffs circle { fill: #c9c2b2; opacity: .13; }
+.df-fence-rail { stroke: #6b4f36; stroke-width: 1.5; opacity: .55; }
+.df-fence-rail-2 { opacity: .3; }
+.df-fence-post { fill: #5a4632; opacity: .75; }
+.df-flower-a { fill: #d6b06a; opacity: .65; }
+.df-flower-b { fill: #c9ddd6; opacity: .55; }
+.df-flower-c { fill: #a85f3d; opacity: .45; }
+.df-sky-glow { fill: url(#df-sky-glow); pointer-events: none; }
+/* Station-specific details */
+.df-dial circle { fill: #2a2723; stroke: #c19a5b; stroke-width: 1.4; }
+.df-dial line { stroke: #e0cfa7; stroke-width: 1.2; stroke-linecap: round; }
+.df-dial-pin { fill: #c19a5b; }
+.df-switch rect { fill: #6b675c; stroke: #5a554b; stroke-width: 1; }
+.df-switch-lever { stroke: #c19a5b; stroke-width: 2; stroke-linecap: round; }
+.df-switch-knob { fill: #e0cfa7; stroke: #8a6a2f; stroke-width: .8; }
+.df-arch { fill: none; stroke: #c19a5b; stroke-width: 2; opacity: .55; }
+.df-antenna { stroke: #837e72; stroke-width: 1.5; }
+.df-antenna-tip { fill: #d6b06a; opacity: .8; }
+/* Billboard / spotlight / HUD event */
+.df-billboard-shadow { fill: var(--df-shadow); opacity: .35; }
+.df-billboard-post { fill: #5a4632; }
+.df-billboard-panel { fill: #2a2723; stroke: #c19a5b; stroke-width: 1.2; }
+.df-billboard-title { fill: #e0cfa7; font-size: 16px; font-weight: 800; letter-spacing: .08em; }
+.df-billboard-sub { fill: #a39b8c; font-size: 7px; letter-spacing: .14em; }
+.df-billboard-water .df-billboard-panel { stroke: #8fb0a8; }
+.df-billboard-water .df-billboard-title { fill: #d8e8e2; }
+.df-spotlight { fill: url(#df-spot); opacity: .85; }
+.df-pill-event { color: #e0cfa7; border-color: color-mix(in srgb, #c19a5b 55%, transparent); background: color-mix(in srgb, #c19a5b 8%, transparent); max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
+/* Wall plaques */
+.df-plaque-bg { fill: #2a2723; stroke: #c19a5b; stroke-width: .8; opacity: .94; }
+.df-plaque-hi { stroke: #c19a5b; stroke-width: .7; opacity: .5; }
+.df-plaque-name { fill: #ece6d8; font-size: 8.8px; font-weight: 700; }
+.df-plaque-sub { fill: #a39b8c; font-size: 6.4px; }
+/* Footprints / carrying */
+.df-footprints ellipse { fill: #141310; opacity: .16; }
+.df-worker[data-walking="1"] .df-footprints { animation: df-foot .42s linear infinite; }
+.df-worker[data-carrying="1"] .df-worker-body { transform: rotate(-5deg); }
+.df-worker[data-carrying="1"] .df-arm-l { animation: none; transform: rotate(-62deg); transform-box: fill-box; transform-origin: top center; }
+.df-worker[data-carrying="1"] .df-arm-r { animation: none; transform: rotate(-70deg); transform-box: fill-box; transform-origin: top center; }
+/* Thin service lines and bridges */
+.df-service-line { fill: none; stroke: #c19a5b; stroke-width: 2; stroke-dasharray: 5 6; opacity: .55; stroke-linecap: round; }
+.df-service-flow { fill: none; stroke: #e0cfa7; stroke-width: 2; stroke-dasharray: 2 10; opacity: .4; animation: df-flow 1.4s linear infinite; }
+.df-edge-active .df-service-line { stroke: var(--df-accent); opacity: 1; }
+.df-edge-error .df-service-line { stroke: var(--df-red); }
+.df-edge-skip .df-service-line { stroke: var(--df-amber); }
+.df-bridge-deck { fill: #8a6644; stroke: #5a3b28; stroke-width: 1.4; }
+.df-bridge-arch { fill: none; stroke: #5a3b28; stroke-width: 4; }
+.df-bridge-hi { stroke: #e0cfa7; stroke-width: 1; opacity: .5; }
 /* Keyframes */
 @keyframes df-flow { to { stroke-dashoffset: -18; } }
 @keyframes df-spin { to { transform: rotate(360deg); } }
@@ -2109,6 +2391,7 @@ const CSS = `
 @keyframes df-leg-b { 0%,100% { transform: rotate(-14deg); } 50% { transform: rotate(12deg); } }
 @keyframes df-arm-a { 0%,100% { transform: rotate(-10deg); } 50% { transform: rotate(10deg); } }
 @keyframes df-arm-b { 0%,100% { transform: rotate(10deg); } 50% { transform: rotate(-10deg); } }
+@keyframes df-foot { 0%,100% { opacity: .16; transform: translateY(0); } 50% { opacity: .06; transform: translateY(-1px); } }
 @keyframes df-hammer { 0%,100% { transform: rotate(0deg); } 45% { transform: rotate(-55deg); } }
 @keyframes df-flap-l { 0% { transform: rotate(0deg); } 100% { transform: rotate(-26deg); } }
 @keyframes df-flap-r { 0% { transform: rotate(0deg); } 100% { transform: rotate(26deg); } }

@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { __test } from '../src/host.js'
 
-const { initialState, fold, isStorageTool, isSubagentTool, isSkillTool, parseArgs } = __test
+const { initialState, fold, isStorageTool, isSubagentTool, isSkillTool, parseArgs, markLive, LIVE } = __test
 
 function event(type, seq, time, data) {
   return { type, seq, time, data }
@@ -98,4 +98,17 @@ test('tool classifiers stay narrow', () => {
   assert.equal(isSkillTool('skills_list'), false)
   assert.deepEqual(parseArgs('{"a":1}'), { a: 1 })
   assert.deepEqual(parseArgs('not json'), {})
+})
+
+
+test('live phase history keeps pre-step and post-step marks', () => {
+  LIVE.clear()
+  const agent = { id: 'session-live' }
+  markLive(agent, 'pre-step', 'pre-step：装配第 1 步', { turn: 1, step: 1 })
+  markLive(agent, 'post-step', 'post-step：第 1 步装配完成', { turn: 1, step: 1 })
+  markLive(agent, 'model-request', 'agent/request：第 1 步请求模型', { turn: 1, step: 1 })
+  const record = LIVE.get('session-live')
+  assert.equal(record.phase, 'model-request')
+  assert.deepEqual(record.history.map((entry) => entry.phase), ['pre-step', 'post-step', 'model-request'])
+  LIVE.clear()
 })

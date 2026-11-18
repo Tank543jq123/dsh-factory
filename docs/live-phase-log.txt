@@ -1,0 +1,33 @@
+DSH 工厂插件 · 3082 真实事件探测记录
+时间：2026-11-19 00:26 CST
+Session：session-d8284111-80ee-4c6c-87e1-e5dd60d8032c（3082 当前工厂会话）
+Prompt：用 bash 执行 echo trace-final，然后只回复输出。
+接口：POST http://127.0.0.1:3082/api/dsh-factory/live
+说明：trace 来自宿主机真实 Cordis / Session 事件；不是前端补帧。
+
+trace entries: 12
+pre-step      | pre-step：装配第 1 步
+post-step     | post-step：第 1 步装配完成
+assembly      | 第 1 步装配上下文
+model-request | agent/request：第 1 步请求模型
+model         | 模型回包
+tools         | 工具调用：bash
+pre-step      | pre-step：装配第 2 步
+post-step     | post-step：第 2 步装配完成
+assembly      | 第 2 步装配上下文
+model-request | agent/request：第 2 步请求模型
+model         | 模型回包
+stopping      | turn 正在停止
+
+对应关系：
+- agent/pre-step → pre-step / post-step（post-step 在 next() 返回后记录）
+- session/event step/start → assembly
+- agent/request → model-request
+- session/event assistant/message → model
+- session/event tool/call → tools
+- agent/turn-stopping → stopping
+
+同一次会话里还跑通了：
+1) 普通提问「工厂自测：用一句话回答 1+1 等于几」→ 2 秒，回答 1 + 1 等于 2。
+2) /html-report + bash 提问 → 3 秒，回答 dsh-factory-ok；工厂路线：装配 → Skill → 模型 → MCP/工具。
+3) /html-report + bash 提问（水主题）→ 3 秒，回答 water-ok；用于 water skill scan / tool window 截图。
