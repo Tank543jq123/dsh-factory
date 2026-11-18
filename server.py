@@ -225,6 +225,14 @@ class H(BaseHTTPRequestHandler):
             self.send_response(200); self.send_header("content-type", "application/json; charset=utf-8")
             self.send_header("cache-control", "no-store"); self.send_header("content-length", str(len(body)))
             self.end_headers(); self.wfile.write(body); return
+        if self.path.startswith("/api/latest"):
+            # 最近活跃的会话 + 它的步骤，供页面做「跟随最新一轮」的近似实时模式。
+            items = list_sessions(1)
+            out = session_steps(items[0]["id"]) if items else {"error": "no session"}
+            body = json.dumps(out, ensure_ascii=False).encode()
+            self.send_response(200); self.send_header("content-type", "application/json; charset=utf-8")
+            self.send_header("cache-control", "no-store"); self.send_header("content-length", str(len(body)))
+            self.end_headers(); self.wfile.write(body); return
         if self.path.startswith("/api/sessions"):
             body = json.dumps({"sessions": list_sessions()}, ensure_ascii=False).encode()
             self.send_response(200); self.send_header("content-type", "application/json; charset=utf-8")
