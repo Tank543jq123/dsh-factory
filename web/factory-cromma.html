@@ -34,7 +34,7 @@ canvas{width:100%;display:block;border-radius:8px;background:#fbf8f0;image-rende
 .chk{display:inline-block;width:10px;height:10px;border:1.2px solid var(--ink);border-radius:2px;margin-right:6px;vertical-align:-1px}
 .chk.on{background:var(--orange2)}
 </style></head><body>
-<div id="idleTag" style="position:fixed;right:14px;top:14px;padding:5px 10px;border:2px solid #16130F;box-shadow:3px 3px 0 #16130F;font:12px ui-monospace;background:#ddd3bd;color:#16130F;z-index:9">检测中…</div>
+<div id="idleTag" style="position:fixed;right:14px;top:14px;padding:5px 10px;border:2px solid #16130F;box-shadow:3px 3px 0 #16130F;font:12px ui-monospace;background:#ddd3bd;color:#16130F;z-index:9">空闲 · 等待对话</div>
 <div class="dots"></div>
 <div class="wrap">
 <div id="idle-badge" style="position:fixed;right:18px;bottom:16px;z-index:9;font:12px ui-monospace,monospace;background:#fff;border:1.5px solid #2b2620;border-radius:999px;padding:4px 12px;box-shadow:3px 3px 0 #e6dcc6">空闲 · 等待对话</div>
@@ -201,7 +201,13 @@ function drawModule(n){
 }
 
 let T=0; let FACTORY_ACTIVE=false;
-async function pollStatus(){try{let r=await fetch('/dsh-factory/status'+location.search,{cache:'no-store'});if(!r.ok)r=await fetch('/dsh-factory/activity.json'+location.search,{cache:'no-store'});const j=await r.json();FACTORY_ACTIVE=j.active===true;ACTIVE=FACTORY_ACTIVE;const b=document.getElementById('idle-badge')||document.getElementById('idleTag');if(b){b.textContent=FACTORY_ACTIVE?('运行中 · '+(j.phase||'处理中')):'空闲 · 等待对话';b.style.opacity=FACTORY_ACTIVE?'1':'.75';}}catch(e){FACTORY_ACTIVE=false}}
+async function pollStatus(){try{
+  const qs=location.search||'';
+  let act=false, phase='';
+  try{const ra=await fetch('/dsh-factory/activity.json'+qs,{cache:'no-store'});if(ra.ok){const ja=await ra.json();act=ja.active===true;}}catch(e){}
+  try{const rs=await fetch('/dsh-factory/status'+qs,{cache:'no-store'});if(rs.ok){const js=await rs.json();if(js.active===true){act=true;phase=js.phase||'';}}}catch(e){}
+  const FACTORY_ACTIVE=act;ACTIVE=act;
+  const j={active:act,phase};const b=document.getElementById('idle-badge')||document.getElementById('idleTag');if(b){b.textContent=FACTORY_ACTIVE?('运行中 · '+(j.phase||'处理中')):'空闲 · 等待对话';b.style.opacity=FACTORY_ACTIVE?'1':'.75';}}catch(e){FACTORY_ACTIVE=false;const b=document.getElementById('idle-badge')||document.getElementById('idleTag');if(b)b.textContent='空闲 · 等待对话';}}
 pollStatus();setInterval(pollStatus,3000); let ACTIVE=false;
 window.addEventListener('message',(e)=>{const v=e&&e.data; if(v==='dsh-factory:active')ACTIVE=true; else if(v==='dsh-factory:idle')ACTIVE=false;});
 function nodeAt(l){return NODES.find(n=>n.label===l);}
