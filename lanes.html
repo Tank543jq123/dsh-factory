@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>多条产线 · 单向流水（像素风）</title>
+<style>
+body{margin:0;background:#0a0e14;color:#e8eaed;font:14px/1.6 -apple-system,"PingFang SC",sans-serif}
+.wrap{padding:14px 18px}
+h1{font-size:16px;margin:0 0 4px}.sub{color:#93a1b5;font-size:12px;margin-bottom:10px}
+canvas{width:100%;image-rendering:pixelated;border:1px solid #22303f;border-radius:8px}
+.legend{color:#93a1b5;font-size:11.5px;margin-top:8px}
+</style></head><body><div class="wrap">
+<h1>多条产线 · 单向流水（像素风原型）</h1>
+<div class="sub">三条并行产线，全部从左往右；箱子上的数字是这一步的 token 估算（字符数÷2），输入口标出本轮输入 token</div>
+<canvas id="cv" width="1200" height="560"></canvas>
+<div class="legend">同样一条消息可以被多条产线并行加工：主线走推理，副线走工具调用与记忆检索；工位依次是 输入 → 规则 → 路由 → 工具/技能 → 模型 → 输出</div>
+</div>
+<script>
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+ctx.imageSmoothingEnabled=false;
+const W=1200,H=560;
+const P=['#0b0f16','#141c28','#1d2836','#26333f','#32424f','#3f5460','#54707c','#6b8c96','#8fb3a8','#c9d8a8','#e8d49b','#f2b95c','#e08b42','#a85f3a','#6f4a35','#ffffff','#6fc3ff','#9fe8ff'];
+// 站名（从左到右）
+const STATIONS=['输入','规则注入','路由','技能/工具','模型','输出'];
+const LANES=[
+  {y:120,label:'主线 · 推理',color:P[7],items:[{name:'用户消息',tok:'1.2k'},{name:'系统提示',tok:'8.4k'},{name:'选工具',tok:'0.3k'},{name:'bash',tok:'2.1k'},{name:'推理',tok:'6.7k'},{name:'回答',tok:'1.8k'}]},
+  {y:300,label:'副线 · 记忆检索',color:P[16],items:[{name:'查询',tok:'0.4k'},{name:'规则',tok:'1.1k'},{name:'匹配',tok:'0.2k'},{name:'手册命中',tok:'3.2k'},{name:'汇总',tok:'1.4k'},{name:'注入',tok:'0.9k'}]},
+  {y:470,label:'副线 · 外部接口',color:P[12],items:[{name:'请求',tok:'0.3k'},{name:'鉴权',tok:'0.1k'},{name:'路由',tok:'0.2k'},{name:'MCP 调用',tok:'1.7k'},{name:'解析',tok:'0.8k'},{name:'合并',tok:'0.5k'}]},
+];
+const SX=[70,260,450,640,830,1020]; // 各站 x
+let T=0;
+function belt(y,color){
+  ctx.fillStyle=P[2];ctx.fillRect(0,y,W,26);
+  ctx.fillStyle=P[3];ctx.fillRect(0,y,W,4);
+  for(let x=0;x<W;x+=28){const off=(T*40)%28;ctx.fillStyle=P[4];ctx.fillRect(x+off,y+6,14,4);}
+  ctx.fillStyle=P[1];ctx.fillRect(0,y+26,W,3);
+}
+function machine(x,y,w,h,c1,c2){
+  ctx.fillStyle=c1;ctx.fillRect(x,y-h,w,h);
+  ctx.fillStyle=c2;ctx.fillRect(x,y-h,w,5);
+  ctx.strokeStyle=P[0];ctx.lineWidth=1;ctx.strokeRect(x+.5,y-h+.5,w-1,h-1);
+}
+function crate(x,y,w,tok,name,c){
+  ctx.fillStyle=c;ctx.fillRect(x,y-16,w,16);
+  ctx.fillStyle=P[0];ctx.fillRect(x,y-16,w,2);ctx.fillRect(x,y-2,w,2);
+  ctx.fillStyle=P[15];ctx.font='7px ui-monospace,monospace';ctx.fillText(tok,x+3,y-6);
+  ctx.fillStyle=P[9];ctx.font='7px ui-monospace,monospace';ctx.fillText(name,x-2,y-22);
+}
+function worker(x,y){
+  ctx.fillStyle=P[0];ctx.fillRect(x-3,y+10,7,2);
+  ctx.fillStyle=P[13];ctx.fillRect(x-3,y-6,6,10);
+  ctx.fillStyle=P[12];ctx.fillRect(x-2,y-11,5,5);
+  ctx.fillStyle=P[11];ctx.fillRect(x-3,y-12,7,2);
+}
+function draw(){
+  T+=0.016;
+  ctx.fillStyle=P[0];ctx.fillRect(0,0,W,H);
+  // 标题条
+  ctx.fillStyle=P[1];ctx.fillRect(0,0,W,46);
+  ctx.fillStyle=P[10];ctx.font='13px ui-monospace,monospace';
+  ctx.fillText('输入 tokens ≈ 1.2k  →  规则/技能/工具  →  模型  →  输出',16,28);
+  LANES.forEach((ln,li)=>{
+    belt(ln.y,ln.color);
+    // 站名
+    for(let i=0;i<STATIONS.length;i++){
+      ctx.fillStyle=P[7];ctx.font='9px ui-monospace,monospace';ctx.fillText(STATIONS[i],SX[i]-8,ln.y-90);
+      machine(SX[i]-16,ln.y-14,58,66,li===0?P[6]:P[5],ln.color);
+      if(i===2||i===3){ // 机器细节：指示灯/齿轮
+        for(let k=0;k<3;k++){const on=(Math.sin(T*4+k+li)>0)?1:0;ctx.fillStyle=on?P[11]:P[2];ctx.fillRect(SX[i]-8+k*14,ln.y-66,8,6);}
+      }
+      if(i===4){ // 模型：活塞
+        const ph=Math.sin(T*5)>0?0:8;ctx.fillStyle=P[11];ctx.fillRect(SX[i]+8,ln.y-56+ph,14,12);
+      }
+    }
+    // 箱子沿产线从左到右滚动，按站点顺序出现
+    for(let k=0;k<2;k++){
+      const idx=(Math.floor(T*0.35)+k*3+li)%ln.items.length;
+      const it=ln.items[idx];
+      const phase=((T*0.14 + k*0.5 + li*0.07)%1);
+      const x=phase*(W-160)+40;
+      crate(x,ln.y+22,52,it.tok,it.name,li===0?P[14]:P[10]);
+    }
+    // 工人
+    worker(180,ln.y+22);worker(560,ln.y+22);
+    // 产线名
+    ctx.fillStyle=ln.color;ctx.font='11px ui-monospace,monospace';ctx.fillText(ln.label,16,ln.y-140);
+  });
+  requestAnimationFrame(draw);
+}
+draw();
+</script></body></html>
