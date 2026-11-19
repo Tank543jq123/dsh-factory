@@ -1109,6 +1109,11 @@ function RouteGate({ route, theme }) {
 /* Details panel                                                       */
 /* ------------------------------------------------------------------ */
 
+function BlueprintFrame() {
+  return h('iframe', { title: 'dsh-factory 蓝图', src: '/dsh-factory/blueprint',
+    style: { width: '100%', height: '660px', border: '0', borderRadius: '10px', background: '#fbf8f2' } })
+}
+
 function LaneFrame() {
   const html = (typeof __DF_LANE_HTML__ === 'string') ? __DF_LANE_HTML__ : ''
   return h('iframe', {
@@ -1830,7 +1835,7 @@ function installStyle() {
 function LaneView() {
   return h('div', { style: { width: '100%', height: '100%', minHeight: '520px', background: '#F3EFE6' } },
     h('iframe', {
-      src: '/dsh-factory/lane',
+      src: '/dsh-factory/blueprint',
       title: '工厂视图',
       style: { width: '100%', height: '100%', minHeight: '520px', border: '0', display: 'block' },
     }),
@@ -1850,7 +1855,7 @@ function apply(ctx) {
     id: 'factory',
     order: 40,
     label: () => '工厂',
-  }, (props) => h(LaneView, props)))
+  }, () => h(BlueprintFrame)))
   ctx.slots.inject('conversation.input.dock', () => ctx.slots.register({
     name: 'conversation.input.dock',
     id: 'factory-strip',

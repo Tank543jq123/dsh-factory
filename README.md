@@ -130,7 +130,7 @@ node --test test/*.test.mjs
 
 | 文件 | 说明 |
 |---|---|
-| `docs/screenshots/factory-lane.png` | 截图 | 
+| `docs/screenshots/factory-blueprint.png` | 截图 | 
 | `docs/screenshots/old-2d.png` | 截图 | 
 | `docs/screenshots/palette-16.png` | 截图 | 
 | `docs/screenshots/static-pixel-clean.png` | 截图 | 
