@@ -27,6 +27,7 @@ ol{margin:8px 0 0 16px;padding:0}li{margin:5px 0}
 <script>
 const cv=document.getElementById('c'),ctx=cv.getContext('2d');ctx.imageSmoothingEnabled=false;
 const W=1360,H=900;
+const VIEW=(()=>{let a=1e9,b=1e9,c=-1e9,d=-1e9;return null})();
 const INK='#16130F', PAPER='#F3EFE6', AMBER='#F5B545', LAV='#B1A7FF', BLUE='#7A9DFF', GREEN='#9BE09B', RED='#EE4D5D', PURPLE='#B381DD';
 // ---- 蛇形路径：三排折返（2.5D 斜投影）----
 const ISO=(x,y)=>({x: 150 + x*92 - y*26, y: 210 + x*12 + y*86});
@@ -50,6 +51,17 @@ function at(dist){ // 沿路径取点
   d-=s.len;}
  return PATH[0];
 }
+// 场景包围盒（取路径各点与车间高度）
+const BB=(()=>{let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+ for(const p of PATH){const q=ISO(p.x,p.y);
+  x0=Math.min(x0,q.x-140);x1=Math.max(x1,q.x+140);
+  y0=Math.min(y0,q.y-140);y1=Math.max(y1,q.y+40);}
+ return {x0,y0,x1,y1};})();
+function fit(){const bw=BB.x1-BB.x0, bh=BB.y1-BB.y0;
+ const k=Math.min((W-120)/bw,(H-190)/bh);
+ const tx=(W-bw*k)/2-BB.x0*k, ty=(H-bh*k)/2-BB.y0*k+30;
+ return {k,tx,ty};}
+const FIT=fit();
 function box2d(cx,cy,w,h,fill,shadow=6){ // 黑描边 + 硬投影
  ctx.fillStyle=INK;ctx.fillRect(cx-w/2+shadow,cy-h/2+shadow,w,h);
  ctx.fillStyle=fill;ctx.fillRect(cx-w/2,cy-h/2,w,h);
@@ -140,7 +152,7 @@ function m_exit(x,y){ const w=96,h=64;
  ctx.fillStyle=INK;ctx.fillRect(x-6,y-10,12,10);
 }
 const RENDER={ '路由单元':m_router,'技能检索':m_skill,'模型加工':m_press,'工具执行':m_tool,'出货':m_exit };
-function station(s,t){
+function station(s,t,pkg){
  const p=at(s.d*TOTAL);const q=ISO(p.x,p.y);
  const near=(pkg||[]).some(k=>Math.abs(((k.d-s.d*TOTAL)+TOTAL/2)%TOTAL-TOTAL/2)<70);
  const f=RENDER[s.name]||m_router;
@@ -167,6 +179,7 @@ function draw(){
  ctx.fillStyle=AMBER;ctx.fillRect(0,0,W,52);ctx.fillStyle=INK;ctx.fillRect(0,52,W,3);
  ctx.fillStyle=INK;ctx.font='bold 15px ui-monospace';
  ctx.fillText('FACTORY · 每次调用都是一个包裹，沿蛇形传送带走一圈',18,33);
+ ctx.save();ctx.translate(FIT.tx,FIT.ty);ctx.scale(FIT.k,FIT.k);
  belt();
  // 包裹先算出位置，用于驱动车间动作
  const pkg=[];
@@ -184,12 +197,14 @@ function draw(){
   outlineRect(q.x-26,q.y-62,52,16,'#FFFFFF',3);
   txt(nm,q.x-22,q.y-49,10);
  }
+ ctx.restore();
  requestAnimationFrame(draw);
 }
 // 点击车间
 cv.addEventListener('click',e=>{
  const r=cv.getBoundingClientRect();
- const mx=(e.clientX-r.left)*(W/r.width), my=(e.clientY-r.top)*(H/r.height);
+ const sx=(e.clientX-r.left)*(W/r.width), sy=(e.clientY-r.top)*(H/r.height);
+ const mx=(sx-FIT.tx)/FIT.k, my=(sy-FIT.ty)/FIT.k;
  for(const s of STATIONS){
   const p=at(s.d*TOTAL);const q=ISO(p.x,p.y);
   if(Math.abs(mx-q.x)<44 && Math.abs(my-(q.y-58))<30){show(s);return;}
