@@ -1,0 +1,197 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><title>DSH 工厂 · 蛇形传送带</title>
+<style>
+html,body{margin:0;height:100%;background:#F3EFE6;color:#16130F;font:13px/1.55 ui-monospace,"SFMono-Regular",Menlo,"PingFang SC",monospace;overflow:hidden}
+#wrap{display:flex;height:100%}
+#stage{flex:1;display:flex;align-items:center;justify-content:center}
+canvas{height:min(94vh,calc((100vw - 330px)*0.66));width:auto;image-rendering:pixelated;border:3px solid #16130F;box-shadow:8px 8px 0 #16130F;background:#F3EFE6}
+#side{width:330px;flex:0 0 330px;padding:16px;background:#FBFAF6;border-left:3px solid #16130F;overflow:auto}
+h1{font-size:19px;margin:0 0 10px;letter-spacing:.5px;text-transform:uppercase}
+h1:after{content:'';display:block;height:6px;width:64px;background:#F5B545;border:2px solid #16130F;margin-top:7px}
+.dim{color:#5B564E;font-size:12px;line-height:1.7}
+.card{margin-top:12px;padding:12px;background:#fff;border:3px solid #16130F;box-shadow:6px 6px 0 #16130F;border-radius:3px;font-size:12.5px}
+.card b{background:#F5B545;border:2px solid #16130F;padding:1px 5px}
+ol{margin:8px 0 0 16px;padding:0}li{margin:5px 0}
+.tag{display:inline-block;font-size:11px;padding:1px 6px;border:2px solid #16130F;background:#B1A7FF;margin-right:4px}
+.tag.g{background:#9BE09B}.tag.b{background:#7A9DFF}
+</style></head><body><div id="wrap">
+<div id="stage"><canvas id="c" width="1360" height="900"></canvas></div>
+<div id="side"><h1>Factory · 蛇形产线</h1>
+<div class="dim">参照 CrommaCode 的 Game View「Factory」：每次调用是一个包裹，在蛇形传送带上走一圈。<br>纸感底 · 黑描边 · 硬投影 · 平涂色。</div>
+<div class="card" id="info"><b>玩法</b><ol>
+<li>包裹＝一次工具调用/一个工序，带黑色描边与硬投影</li>
+<li>传送带蛇形折返三排，拐角处是车间</li>
+<li>点任意车间看它内部在做什么</li>
+</ol></div>
+<div class="card"><span class="tag b">主线</span><span class="tag">技能</span><span class="tag g">工具</span><div class="dim" style="margin-top:8px">颜色即产线归属；同一时刻每条线只有一个包裹在动。</div></div>
+</div></div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');ctx.imageSmoothingEnabled=false;
+const W=1360,H=900;
+const INK='#16130F', PAPER='#F3EFE6', AMBER='#F5B545', LAV='#B1A7FF', BLUE='#7A9DFF', GREEN='#9BE09B', RED='#EE4D5D', PURPLE='#B381DD';
+// ---- 蛇形路径：三排折返（2.5D 斜投影）----
+const ISO=(x,y)=>({x: 150 + x*92 - y*26, y: 210 + x*12 + y*86});
+const PATH=[];
+(function(){
+ const rows=[{y:0,dir:1},{y:1.35,dir:-1},{y:2.7,dir:1}];
+ rows.forEach((r,ri)=>{
+  const x0=ri%2===0?0:9, x1=ri%2===0?9:0;
+  PATH.push({x:x0,y:r.y});
+  PATH.push({x:x1,y:r.y});
+  if(ri<2) PATH.push({x:x1,y:r.y+1.35});
+ });
+})();
+function segLen(a,b){const A=ISO(a.x,a.y),B=ISO(b.x,b.y);return Math.hypot(B.x-A.x,B.y-A.y);}
+const SEGS=[];let TOTAL=0;
+for(let i=0;i<PATH.length-1;i++){const L=segLen(PATH[i],PATH[i+1]);SEGS.push({a:PATH[i],b:PATH[i+1],len:L,start:TOTAL});TOTAL+=L;}
+function at(dist){ // 沿路径取点
+ let d=((dist%TOTAL)+TOTAL)%TOTAL;
+ for(const s of SEGS){if(d<=s.len){const k=d/s.len;
+   return {x:s.a.x+(s.b.x-s.a.x)*k, y:s.a.y+(s.b.y-s.a.y)*k};}
+  d-=s.len;}
+ return PATH[0];
+}
+function box2d(cx,cy,w,h,fill,shadow=6){ // 黑描边 + 硬投影
+ ctx.fillStyle=INK;ctx.fillRect(cx-w/2+shadow,cy-h/2+shadow,w,h);
+ ctx.fillStyle=fill;ctx.fillRect(cx-w/2,cy-h/2,w,h);
+ ctx.strokeStyle=INK;ctx.lineWidth=3;ctx.strokeRect(cx-w/2,cy-h/2,w,h);
+}
+function belt(){
+ // 带面：沿路径画粗线（黑描边）+ 内部浅色
+ ctx.lineCap='round';ctx.lineJoin='round';
+ ctx.strokeStyle=INK;ctx.lineWidth=46;ctx.beginPath();
+ PATH.forEach((p,i)=>{const q=ISO(p.x,p.y);i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y);});ctx.stroke();
+ ctx.strokeStyle='#DCD5C4';ctx.lineWidth=38;ctx.beginPath();
+ PATH.forEach((p,i)=>{const q=ISO(p.x,p.y);i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y);});ctx.stroke();
+ // 齿条
+ const step=26;
+ for(let d=0;d<TOTAL;d+=step){const p=at(d);const q=ISO(p.x,p.y);
+  ctx.fillStyle='#C7BFAE';ctx.fillRect(q.x-6,q.y-5,12,10);}
+}
+// ---- 车间 ----
+const STATIONS=[
+ {d:0.02,name:'路由单元',color:AMBER,steps:['读 preset（agent-preset）','选 provider / 模型','预算与上限检查','通过 → 下发加工','超额 → 排队']},
+ {d:0.30,name:'技能检索',color:'#9BE09B',steps:['列 5 个技能库','按名字/描述匹配','命中 → 展开正文注入','未命中 → 不占位']},
+ {d:0.55,name:'模型加工',color:LAV,steps:['组装 messages','provider 路由请求','流式 chunk','解析工具调用','产出工具订单']},
+ {d:0.78,name:'工具执行',color:BLUE,steps:['executeToolCalls 调度','权限门禁校验','超时沙漏','执行并收集','结果回灌']},
+ {d:0.95,name:'出货',color:'#3FBF6F',steps:['回灌最终结果','落盘 / 推送','盖章出厂']},
+];
+function outlineRect(x,y,w,h,fill,sh=5){ // 黑描边 + 硬投影
+ ctx.fillStyle=INK;ctx.fillRect(x+sh,y+sh,w,h);
+ ctx.fillStyle=fill;ctx.fillRect(x,y,w,h);
+ ctx.strokeStyle=INK;ctx.lineWidth=3;ctx.strokeRect(x,y,w,h);
+}
+function txt(t,x,y,size=11,col=INK,bold=true){ctx.fillStyle=col;ctx.font=(bold?'bold ':'')+size+'px ui-monospace';ctx.fillText(t,x,y);}
+// —— 各车间的细节化外观 ——
+function m_router(x,y){ const w=96,h=64;
+ outlineRect(x-w/2,y-h,w,h,'#FFF7E6');
+ outlineRect(x-w/2+10,y-h+10,34,26,AMBER,3);           // 转盘
+ ctx.strokeStyle=INK;ctx.lineWidth=3;ctx.beginPath();ctx.arc(x-w/2+27,y-h+23,12,0,Math.PI*2);ctx.stroke();
+ ctx.beginPath();ctx.moveTo(x-w/2+27,y-h+23);ctx.lineTo(x-w/2+35,y-h+16);ctx.stroke(); // 指针
+ for(let i=0;i<3;i++){ // 三盏指示灯
+  ctx.fillStyle=[GREEN,AMBER,RED][i];ctx.fillRect(x+8+i*18,y-h+12,12,10);
+  ctx.strokeStyle=INK;ctx.lineWidth=2;ctx.strokeRect(x+8+i*18,y-h+12,12,10);}
+ outlineRect(x+6,y-h+30,54,18,'#EFEADF',3);            // 排队抽屉
+ for(let i=0;i<3;i++){ctx.fillStyle=INK;ctx.fillRect(x+11+i*16,y-h+34,10,10);}
+ ctx.fillStyle=INK;ctx.fillRect(x-6,y-10,12,10);
+ txt('ROUTER',x-w/2+4,y-14,10);
+}
+function m_skill(x,y){ const w=96,h=64;
+ outlineRect(x-w/2,y-h,w,h,'#F2FBF2');
+ for(let i=0;i<4;i++){ // 四层货架，抽屉
+  outlineRect(x-w/2+8,y-h+10+i*13,64,11,i===2?'#9BE09B':'#E9E4D6',2);
+  ctx.strokeStyle=INK;ctx.lineWidth=2;ctx.beginPath();
+  ctx.moveTo(x+w/2-22,y-h+15+i*13);ctx.lineTo(x+w/2-16,y-h+15+i*13);ctx.stroke();}
+ ctx.strokeStyle=INK;ctx.lineWidth=3;ctx.beginPath(); // 扫描光柱
+ ctx.moveTo(x+w/2-4,y-h+4);ctx.lineTo(x+w/2-4,y-10);ctx.stroke();
+ ctx.fillStyle=GREEN;ctx.fillRect(x+w/2-7,y-14,6,6);
+ ctx.fillStyle=INK;ctx.fillRect(x-6,y-10,12,10);
+ txt('SKILLS',x-w/2+4,y-14,10);
+}
+function m_press(x,y){ const w=96,h=64;
+ outlineRect(x-w/2,y-h,w,h,'#F6F3FB');
+ outlineRect(x-w/2+12,y-h+8,30,12,'#B1A7FF',3);        // 冲压头
+ outlineRect(x-w/2+12,y-h+28,30,20,'#EFEAFB',3);       // 工件
+ ctx.strokeStyle=INK;ctx.lineWidth=3;ctx.beginPath();  // 压力表
+ ctx.arc(x+w/2-18,y-h+18,9,0,Math.PI*2);ctx.stroke();
+ ctx.beginPath();ctx.moveTo(x+w/2-18,y-h+18);ctx.lineTo(x+w/2-13,y-h+12);ctx.stroke();
+ for(let i=0;i<4;i++){ // 火花
+  ctx.fillStyle=AMBER;ctx.fillRect(x-w/2+18+i*7,y-h+50-(i%2)*4,4,4);}
+ ctx.fillStyle=INK;ctx.fillRect(x-6,y-10,12,10);
+ txt('MODEL',x-w/2+4,y-14,10);
+}
+function m_tool(x,y){ const w=96,h=64;
+ outlineRect(x-w/2,y-h,w,h,'#F1F5FF');
+ outlineRect(x-w/2+10,y-h+8,22,16,BLUE,3);             // 机械臂基座
+ ctx.strokeStyle=INK;ctx.lineWidth=5;ctx.beginPath();  // 臂
+ ctx.moveTo(x-w/2+21,y-h+24);ctx.lineTo(x-w/2+52,y-h+14);ctx.stroke();
+ outlineRect(x-w/2+52,y-h+8,16,12,'#DCE6FA',3);        // 夹爪
+ ctx.fillStyle=RED;ctx.fillRect(x+w/2-16,y-h+40,10,10); // 门禁灯
+ ctx.strokeStyle=INK;ctx.lineWidth=2;ctx.strokeRect(x+w/2-16,y-h+40,10,10);
+ ctx.fillStyle=INK;ctx.fillRect(x-6,y-10,12,10);
+ txt('TOOLS',x-w/2+4,y-14,10);
+}
+function m_exit(x,y){ const w=96,h=64;
+ outlineRect(x-w/2,y-h,w,h,'#F0FBF4');
+ outlineRect(x-w/2+16,y-h+10,64,36,'#3FBF6F',4);       // 大门
+ ctx.fillStyle=INK;ctx.fillRect(x-w/2+44,y-h+10,3,36);
+ ctx.fillStyle=AMBER;ctx.fillRect(x-w/2+34,y-h+26,10,6); // 把手
+ txt('EXIT',x-w/2+4,y-14,10);
+ ctx.fillStyle=INK;ctx.fillRect(x-6,y-10,12,10);
+}
+const RENDER={ '路由单元':m_router,'技能检索':m_skill,'模型加工':m_press,'工具执行':m_tool,'出货':m_exit };
+function station(s,t){
+ const p=at(s.d*TOTAL);const q=ISO(p.x,p.y);
+ const f=RENDER[s.name]||m_router;
+ ctx.save();ctx.translate(0,-58);f(q.x,q.y+58);ctx.restore();
+ ctx.fillStyle=INK;ctx.fillRect(q.x-3,q.y-8,6,8);
+ outlineRect(q.x-40,q.y-108,80,20,'#FFFFFF',4);
+ txt(s.name,q.x-34,q.y-93,12);
+}
+// 小蜜蜂工（并行子代理的拟人化）
+function bee(x,y,ph){
+ const bob=Math.sin(ph*6)*2;
+ ctx.fillStyle=INK;ctx.fillRect(x-2,y-10+bob,4,6);
+ ctx.fillStyle=AMBER;ctx.fillRect(x-3,y-16+bob,6,6);
+ ctx.strokeStyle=INK;ctx.lineWidth=1;ctx.beginPath();
+ ctx.moveTo(x-6,y-18+bob);ctx.lineTo(x-3,y-16+bob);ctx.moveTo(x+6,y-18+bob);ctx.lineTo(x+3,y-16+bob);ctx.stroke();
+}
+let t0=performance.now();
+function draw(){
+ const t=(performance.now()-t0)/1000;
+ ctx.fillStyle=PAPER;ctx.fillRect(0,0,W,H);
+ // 点阵纸感
+ ctx.fillStyle='#E3DDD0';for(let y=14;y<H;y+=24)for(let x=14;x<W;x+=24)ctx.fillRect(x,y,2,2);
+ // 顶条
+ ctx.fillStyle=AMBER;ctx.fillRect(0,0,W,52);ctx.fillStyle=INK;ctx.fillRect(0,52,W,3);
+ ctx.fillStyle=INK;ctx.font='bold 15px ui-monospace';
+ ctx.fillText('FACTORY · 每次调用都是一个包裹，沿蛇形传送带走一圈',18,33);
+ belt();
+ STATIONS.forEach(s=>station(s,t));
+ for(let i=0;i<3;i++){const d=((t*40+i*TOTAL/5)%TOTAL);const q=ISO(at(d).x,at(d).y);bee(q.x+16,q.y-40,t+i);}
+ // 包裹（三条线各一个）
+ const cols=[AMBER,LAV,GREEN];
+ for(let i=0;i<3;i++){
+  const dist=(t*70+i*TOTAL/3)%TOTAL;
+  const p=at(dist);const q=ISO(p.x,p.y);
+  box2d(q.x,q.y-34,44,30,cols[i],6);
+  ctx.strokeStyle=INK;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(q.x-14,q.y-44);ctx.lineTo(q.x-14,q.y-26);ctx.moveTo(q.x+14,q.y-44);ctx.lineTo(q.x+14,q.y-26);ctx.stroke();
+  const nm=['调用 01','调用 02','调用 03'][i];
+  outlineRect(q.x-26,q.y-62,52,16,'#FFFFFF',3);
+  txt(nm,q.x-22,q.y-49,10);
+ }
+ requestAnimationFrame(draw);
+}
+// 点击车间
+cv.addEventListener('click',e=>{
+ const r=cv.getBoundingClientRect();
+ const mx=(e.clientX-r.left)*(W/r.width), my=(e.clientY-r.top)*(H/r.height);
+ for(const s of STATIONS){
+  const p=at(s.d*TOTAL);const q=ISO(p.x,p.y);
+  if(Math.abs(mx-q.x)<44 && Math.abs(my-(q.y-58))<30){show(s);return;}
+ }
+});
+function show(s){
+ document.getElementById('info').innerHTML='<b>'+s.name+'</b><ol>'+s.steps.map(x=>'<li>'+x+'</li>').join('')+'</ol>';
+}
+draw();
+</script></body></html>
