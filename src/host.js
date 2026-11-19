@@ -982,12 +982,12 @@ async function readLibraries(ctx, sessionId) {
   }
 }
 
-/** 蓝图页：把 web/factory-cromma.html 以静态路由发出去（/dsh-factory/blueprint）。 */
+/** 蓝图页：与 /dsh-factory/lane 同源，均发最新蛇形产线页。 */
 function registerBlueprintRoute(ctx) {
   ctx.inject(['webServer'], (scoped) => {
     const server = scoped.get('webServer')
     if (typeof server?.register !== 'function') return
-    const file = new URL('../web/factory-cromma.html', import.meta.url)
+    const file = new URL('../web/factory-lane.html', import.meta.url)
     scoped.effect(
       () => server.register({
         kind: 'exact',
