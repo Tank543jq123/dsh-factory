@@ -34,6 +34,7 @@ canvas{width:100%;display:block;border-radius:8px;background:#fbf8f0;image-rende
 .chk{display:inline-block;width:10px;height:10px;border:1.2px solid var(--ink);border-radius:2px;margin-right:6px;vertical-align:-1px}
 .chk.on{background:var(--orange2)}
 </style></head><body>
+<div id="idleTag" style="position:fixed;right:14px;top:14px;padding:5px 10px;border:2px solid #16130F;box-shadow:3px 3px 0 #16130F;font:12px ui-monospace;background:#ddd3bd;color:#16130F;z-index:9">检测中…</div>
 <div class="dots"></div>
 <div class="wrap">
   <div class="top"><span class="brand">🏭 DSH Factory</span><span>· 工厂视图</span>
@@ -198,7 +199,8 @@ function drawModule(n){
   }
 }
 
-let T=0;
+let T=0; let ACTIVE=false;
+window.addEventListener('message',(e)=>{const v=e&&e.data; if(v==='dsh-factory:active')ACTIVE=true; else if(v==='dsh-factory:idle')ACTIVE=false;});
 function nodeAt(l){return NODES.find(n=>n.label===l);}
 function dashedLine(a,b){
   const p1=iso(a.x+0.5,a.y+0.5,0.3),p2=iso(b.x+0.5,b.y+0.5,0.3);
@@ -208,7 +210,7 @@ function dashedLine(a,b){
   ctx.fillStyle=P.orange;ctx.beginPath();ctx.arc(px,py,3,0,7);ctx.fill();
 }
 function frame(){
-  T+=0.016;
+  if(ACTIVE)T+=0.016;
   ctx.fillStyle=P.paper;ctx.fillRect(0,0,W,H);
   for(let x=0;x<W;x+=7)for(let y=0;y<H;y+=7){if(((x/7|0)+(y/7|0))%2===0){ctx.fillStyle='#f4eddd';ctx.fillRect(x,y,1.4,1.4);}}
   // 平台
@@ -220,6 +222,7 @@ function frame(){
   drawWorker(6+Math.sin(T*0.4)*2, 5.5, Math.sin(T*6)>0);
   drawWorker(19+Math.sin(T*0.5+2)*2, 6.5, Math.sin(T*6+1)>0);
   // 移动的箱子
+  if(!ACTIVE){requestAnimationFrame(frame);return;}
   const seq=[['输入','规则'],['规则','路由'],['路由','技能库'],['技能库','模型'],['模型','输出']];
   const k=Math.floor(T*0.35)%seq.length, t=(T*0.35)%1;
   const a=nodeAt(seq[k][0]),b=nodeAt(seq[k][1]);
