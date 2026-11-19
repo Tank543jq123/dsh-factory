@@ -82,11 +82,12 @@ function outlineRect(x,y,w,h,fill,sh=5){ // 黑描边 + 硬投影
 }
 function txt(t,x,y,size=11,col=INK,bold=true){ctx.fillStyle=col;ctx.font=(bold?'bold ':'')+size+'px ui-monospace';ctx.fillText(t,x,y);}
 // —— 各车间的细节化外观 ——
-function m_router(x,y){ const w=96,h=64;
+function m_router(x,y,live){ const w=96,h=64;
  outlineRect(x-w/2,y-h,w,h,'#FFF7E6');
  outlineRect(x-w/2+10,y-h+10,34,26,AMBER,3);           // 转盘
  ctx.strokeStyle=INK;ctx.lineWidth=3;ctx.beginPath();ctx.arc(x-w/2+27,y-h+23,12,0,Math.PI*2);ctx.stroke();
- ctx.beginPath();ctx.moveTo(x-w/2+27,y-h+23);ctx.lineTo(x-w/2+35,y-h+16);ctx.stroke(); // 指针
+ const ang=live?(performance.now()/90)%360:-40; ctx.beginPath();ctx.moveTo(x-w/2+27,y-h+23);
+ const rr=12, rad=ang*Math.PI/180; ctx.lineTo(x-w/2+27+Math.cos(rad)*rr, y-h+23+Math.sin(rad)*rr);ctx.stroke(); // 指针（靠近时快速转动）
  for(let i=0;i<3;i++){ // 三盏指示灯
   ctx.fillStyle=[GREEN,AMBER,RED][i];ctx.fillRect(x+8+i*18,y-h+12,12,10);
   ctx.strokeStyle=INK;ctx.lineWidth=2;ctx.strokeRect(x+8+i*18,y-h+12,12,10);}
@@ -95,7 +96,7 @@ function m_router(x,y){ const w=96,h=64;
  ctx.fillStyle=INK;ctx.fillRect(x-6,y-10,12,10);
  txt('ROUTER',x-w/2+4,y-14,10);
 }
-function m_skill(x,y){ const w=96,h=64;
+function m_skill(x,y,live){ const w=96,h=64;
  outlineRect(x-w/2,y-h,w,h,'#F2FBF2');
  for(let i=0;i<4;i++){ // 四层货架，抽屉
   outlineRect(x-w/2+8,y-h+10+i*13,64,11,i===2?'#9BE09B':'#E9E4D6',2);
@@ -107,9 +108,9 @@ function m_skill(x,y){ const w=96,h=64;
  ctx.fillStyle=INK;ctx.fillRect(x-6,y-10,12,10);
  txt('SKILLS',x-w/2+4,y-14,10);
 }
-function m_press(x,y){ const w=96,h=64;
+function m_press(x,y,live){ const w=96,h=64;
  outlineRect(x-w/2,y-h,w,h,'#F6F3FB');
- outlineRect(x-w/2+12,y-h+8,30,12,'#B1A7FF',3);        // 冲压头
+ outlineRect(x-w/2+12,y-h+8+(live?(Math.abs(Math.sin(performance.now()/70))*8):0),30,12,'#B1A7FF',3); // 冲压头（靠近时上下冲）
  outlineRect(x-w/2+12,y-h+28,30,20,'#EFEAFB',3);       // 工件
  ctx.strokeStyle=INK;ctx.lineWidth=3;ctx.beginPath();  // 压力表
  ctx.arc(x+w/2-18,y-h+18,9,0,Math.PI*2);ctx.stroke();
@@ -119,11 +120,11 @@ function m_press(x,y){ const w=96,h=64;
  ctx.fillStyle=INK;ctx.fillRect(x-6,y-10,12,10);
  txt('MODEL',x-w/2+4,y-14,10);
 }
-function m_tool(x,y){ const w=96,h=64;
+function m_tool(x,y,live){ const w=96,h=64;
  outlineRect(x-w/2,y-h,w,h,'#F1F5FF');
  outlineRect(x-w/2+10,y-h+8,22,16,BLUE,3);             // 机械臂基座
  ctx.strokeStyle=INK;ctx.lineWidth=5;ctx.beginPath();  // 臂
- ctx.moveTo(x-w/2+21,y-h+24);ctx.lineTo(x-w/2+52,y-h+14);ctx.stroke();
+ const yy=live?y-h+14+Math.sin(performance.now()/120)*6:y-h+14;ctx.moveTo(x-w/2+21,y-h+24);ctx.lineTo(x-w/2+52,yy);ctx.stroke();
  outlineRect(x-w/2+52,y-h+8,16,12,'#DCE6FA',3);        // 夹爪
  ctx.fillStyle=RED;ctx.fillRect(x+w/2-16,y-h+40,10,10); // 门禁灯
  ctx.strokeStyle=INK;ctx.lineWidth=2;ctx.strokeRect(x+w/2-16,y-h+40,10,10);
@@ -141,8 +142,9 @@ function m_exit(x,y){ const w=96,h=64;
 const RENDER={ '路由单元':m_router,'技能检索':m_skill,'模型加工':m_press,'工具执行':m_tool,'出货':m_exit };
 function station(s,t){
  const p=at(s.d*TOTAL);const q=ISO(p.x,p.y);
+ const near=(pkg||[]).some(k=>Math.abs(((k.d-s.d*TOTAL)+TOTAL/2)%TOTAL-TOTAL/2)<70);
  const f=RENDER[s.name]||m_router;
- ctx.save();ctx.translate(0,-58);f(q.x,q.y+58);ctx.restore();
+ ctx.save();ctx.translate(0,-58);f(q.x,q.y+58,near);ctx.restore();
  ctx.fillStyle=INK;ctx.fillRect(q.x-3,q.y-8,6,8);
  outlineRect(q.x-40,q.y-108,80,20,'#FFFFFF',4);
  txt(s.name,q.x-34,q.y-93,12);
@@ -166,7 +168,10 @@ function draw(){
  ctx.fillStyle=INK;ctx.font='bold 15px ui-monospace';
  ctx.fillText('FACTORY · 每次调用都是一个包裹，沿蛇形传送带走一圈',18,33);
  belt();
- STATIONS.forEach(s=>station(s,t));
+ // 包裹先算出位置，用于驱动车间动作
+ const pkg=[];
+ for(let i=0;i<3;i++){ pkg.push({d:(t*70+i*TOTAL/3)%TOTAL, col:[AMBER,LAV,GREEN][i], name:['read','write','bash'][i]}); }
+ STATIONS.forEach(s=>station(s,t,pkg));
  for(let i=0;i<3;i++){const d=((t*40+i*TOTAL/5)%TOTAL);const q=ISO(at(d).x,at(d).y);bee(q.x+16,q.y-40,t+i);}
  // 包裹（三条线各一个）
  const cols=[AMBER,LAV,GREEN];
@@ -175,7 +180,7 @@ function draw(){
   const p=at(dist);const q=ISO(p.x,p.y);
   box2d(q.x,q.y-34,44,30,cols[i],6);
   ctx.strokeStyle=INK;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(q.x-14,q.y-44);ctx.lineTo(q.x-14,q.y-26);ctx.moveTo(q.x+14,q.y-44);ctx.lineTo(q.x+14,q.y-26);ctx.stroke();
-  const nm=['调用 01','调用 02','调用 03'][i];
+  const nm=['read','write','bash'][i];
   outlineRect(q.x-26,q.y-62,52,16,'#FFFFFF',3);
   txt(nm,q.x-22,q.y-49,10);
  }

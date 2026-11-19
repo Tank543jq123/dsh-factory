@@ -3,7 +3,7 @@
 > 把 DSH Agent 的内部结构画成一张 **等距伪 3D 工厂蓝图**，由 3082 上的真实会话事件驱动动画。
 > 两套皮肤：像素工厂 / 水流管道；同一套事件、同一套 2:1 等距视角。
 
-![蛇形产线](docs/screenshots/factory-lane.png)
+![CrommaCode 风格工厂视图](docs/screenshots/factory-cromma.png)
 
 ## 一句话
 
