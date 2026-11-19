@@ -37,6 +37,7 @@ canvas{width:100%;display:block;border-radius:8px;background:#fbf8f0;image-rende
 <div id="idleTag" style="position:fixed;right:14px;top:14px;padding:5px 10px;border:2px solid #16130F;box-shadow:3px 3px 0 #16130F;font:12px ui-monospace;background:#ddd3bd;color:#16130F;z-index:9">检测中…</div>
 <div class="dots"></div>
 <div class="wrap">
+<div id="idle-badge" style="position:fixed;right:18px;bottom:16px;z-index:9;font:12px ui-monospace,monospace;background:#fff;border:1.5px solid #2b2620;border-radius:999px;padding:4px 12px;box-shadow:3px 3px 0 #e6dcc6">空闲 · 等待对话</div>
   <div class="top"><span class="brand">🏭 DSH Factory</span><span>· 工厂视图</span>
     <div class="tabs"><span class="tab on">Westworld</span><span class="tab">Loom</span><span class="tab">Factory</span><span class="tab">Chips</span><span class="tab">Rhythm</span></div>
   </div>
@@ -199,7 +200,9 @@ function drawModule(n){
   }
 }
 
-let T=0; let ACTIVE=false;
+let T=0; let FACTORY_ACTIVE=false;
+async function pollStatus(){try{const r=await fetch('/dsh-factory/status',{cache:'no-store'});const j=await r.json();FACTORY_ACTIVE=j.active===true;const b=document.getElementById('idle-badge');if(b){b.textContent=FACTORY_ACTIVE?('运行中 · '+(j.phase||'处理中')):'空闲 · 等待对话';b.style.opacity=FACTORY_ACTIVE?'1':'.75';}}catch(e){FACTORY_ACTIVE=false}}
+pollStatus();setInterval(pollStatus,3000); let ACTIVE=false;
 window.addEventListener('message',(e)=>{const v=e&&e.data; if(v==='dsh-factory:active')ACTIVE=true; else if(v==='dsh-factory:idle')ACTIVE=false;});
 function nodeAt(l){return NODES.find(n=>n.label===l);}
 function dashedLine(a,b){
