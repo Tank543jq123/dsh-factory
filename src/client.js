@@ -1109,6 +1109,15 @@ function RouteGate({ route, theme }) {
 /* Details panel                                                       */
 /* ------------------------------------------------------------------ */
 
+function LaneFrame() {
+  const html = (typeof __DF_LANE_HTML__ === 'string') ? __DF_LANE_HTML__ : ''
+  return h('iframe', {
+    title: 'dsh-factory 工厂视图',
+    srcDoc: html,
+    style: { width: '100%', height: '660px', border: '0', borderRadius: '10px', background: '#fbf8f2' },
+  })
+}
+
 function Section({ title, children }) {
   return h('div', { className: 'df-section' },
     h('div', { className: 'df-section-title' }, title),
@@ -1733,21 +1742,13 @@ function FactoryView(props) {
   useEffect(() => {
     writeLocal(SPEED_KEY, String(speed))
   }, [speed])
-  return h('div', { className: 'df-view' },
-    h(FactoryBoundary, null, h(FactoryBoard, {
-      view,
-      liveRunning,
-      livePhase,
-      theme,
-      setTheme,
-      speed,
-      setSpeed,
-      stepMode,
-      setStepMode,
-      compact: false,
-      libraryValue,
-    })),
-  )
+  // 2026-11-19：会话内的工厂视图改成直接内嵌最新的「蓝图页」，
+  // 与 /dsh-factory/blueprint、GitHub Pages 三处同一份设计，避免各画一套。
+  return h('iframe', {
+    src: '/dsh-factory/blueprint',
+    title: '工厂蓝图',
+    style: { width: '100%', height: 'calc(100vh - 180px)', minHeight: '520px', border: '0', borderRadius: '10px', background: '#faf7f0' },
+  })
 }
 
 function FactoryStrip(props) {
@@ -1825,6 +1826,17 @@ function installStyle() {
   document.head.appendChild(style)
 }
 
+/** 最新设计：直接嵌入静态路由 /dsh-factory/blueprint（CrommaCode 风格单页）。 */
+function LaneView() {
+  return h('div', { style: { width: '100%', height: '100%', minHeight: '520px', background: '#F3EFE6' } },
+    h('iframe', {
+      src: '/dsh-factory/blueprint',
+      title: '工厂视图',
+      style: { width: '100%', height: '100%', minHeight: '520px', border: '0', display: 'block' },
+    }),
+  )
+}
+
 function apply(ctx) {
   installStyle()
   if (typeof window !== 'undefined') {
@@ -1838,7 +1850,13 @@ function apply(ctx) {
     id: 'factory',
     order: 40,
     label: () => '工厂',
-  }, (props) => h(FactoryView, props)))
+  }, (props) => h(LaneView, props)))
+  ctx.slots.inject('conversation.view', () => ctx.slots.register({
+    name: 'conversation.view',
+    id: 'factory-lane',
+    order: 41,
+    label: () => '工厂·新版',
+  }, () => h(LaneFrame)))
   ctx.slots.inject('conversation.input.dock', () => ctx.slots.register({
     name: 'conversation.input.dock',
     id: 'factory-strip',

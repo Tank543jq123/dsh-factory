@@ -23,7 +23,7 @@
 import { z } from 'zod'
 
 export const name = 'dsh-factory'
-export const inject = ['sessionProjections']
+export const inject = ['sessionProjections', 'webServer']
 
 /** Workshop ids, in the order the factory floor reads left-to-right. */
 export const WORKSHOPS = [
@@ -982,6 +982,33 @@ async function readLibraries(ctx, sessionId) {
   }
 }
 
+/** 蓝图页：把 web/factory-cromma.html 以静态路由发出去（/dsh-factory/blueprint）。 */
+function registerBlueprintRoute(ctx) {
+  ctx.inject(['webServer'], (scoped) => {
+    const server = scoped.get('webServer')
+    if (typeof server?.register !== 'function') return
+    const file = new URL('../web/factory-cromma.html', import.meta.url)
+    scoped.effect(
+      () => server.register({
+        kind: 'exact',
+        path: '/dsh-factory/blueprint',
+        handler: async (req, res) => {
+          try {
+            const { readFile } = await import('node:fs/promises')
+            const buf = await readFile(file)
+            res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'content-length': buf.length, 'cache-control': 'no-store' })
+            res.end(buf)
+          } catch (error) {
+            res.writeHead(500, { 'content-type': 'text/plain; charset=utf-8' })
+            res.end('blueprint page missing: ' + String(error?.message || error))
+          }
+        },
+      }),
+      'dsh-factory: blueprint page route',
+    )
+  })
+}
+
 function registerLibraryRoute(ctx) {
   ctx.inject(['connection', 'skills'], (scoped) => {
     const connection = scoped.get('connection')
@@ -1037,12 +1064,41 @@ function registerLiveRoute(ctx) {
   })
 }
 
+/** 蛇形产线页：把 web/factory-lane.html 以静态路由发出去（/dsh-factory/lane）。 */
+function registerLaneRoute(ctx) {
+  ctx.inject(['webServer'], (scoped) => {
+    const server = scoped.get('webServer')
+    if (typeof server?.register !== 'function') return
+    const file = new URL('../web/factory-lane.html', import.meta.url)
+    scoped.effect(
+      () => server.register({
+        kind: 'exact',
+        path: '/dsh-factory/lane',
+        handler: async (req, res) => {
+          try {
+            const { readFile } = await import('node:fs/promises')
+            const buf = await readFile(file)
+            res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'content-length': buf.length, 'cache-control': 'no-store' })
+            res.end(buf)
+          } catch (err) {
+            res.writeHead(500, { 'content-type': 'text/plain; charset=utf-8' })
+            res.end('factory-lane page missing: ' + err.message)
+          }
+        },
+      }),
+      'dsh-factory: lane page route',
+    )
+  })
+}
+
 export function apply(ctx) {
   ctx.effect(
     () => ctx.sessionProjections.register(factoryProjection),
     'dsh-factory: factoryTrail projection',
   )
   registerLibraryRoute(ctx)
+  registerBlueprintRoute(ctx)
+  registerLaneRoute(ctx)
   registerLiveRoute(ctx)
   liveHook(ctx)
   ctx.logger.info('dsh-factory: factoryTrail projection registered')

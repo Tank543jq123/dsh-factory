@@ -12,12 +12,14 @@ const write = (path, value) => {
 write('lib/index.js', read('src/host.js'))
 
 const client = read('src/client.js')
+const laneHtml = read('web/factory-lane.html')
+const laneConst = `var __DF_LANE_HTML__ = ${JSON.stringify(laneHtml)};\n`
 write('lib/client.js', `window.__ModuleLoader__.load({
   id: "dsh-factory",
   factory: (require) => {
     var module = { exports: {} };
     var exports = module.exports;
-${client}
+${laneConst}${client}
     return module.exports;
   }
 });
