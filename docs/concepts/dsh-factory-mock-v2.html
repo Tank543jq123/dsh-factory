@@ -1,0 +1,145 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+:root{--bg:#f4efe6;--win:#fbf8f2;--line:#d8cfbd;--ink:#2f2a24;--dim:#8a8071;--amber:#e8a33d;--blue:#4a7a96;--green:#6a8f4f;--red:#c85a4a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink);padding:18px}
+.win{width:1244px;margin:0 auto;background:var(--win);border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 40px rgba(120,100,70,.18);overflow:hidden}
+.bar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);background:#fdfbf7}
+.dots{display:flex;gap:6px}.dots i{width:10px;height:10px;border-radius:50%;display:block}
+.title{font-weight:700;letter-spacing:.02em;font-size:14px}
+.tabs{display:flex;gap:6px;margin-left:18px}
+.tab{font-size:12px;padding:4px 10px;border:1px solid var(--line);border-radius:7px;color:var(--dim);background:#fff}
+.tab.on{background:var(--amber);border-color:#c98a2c;color:#3b2a10;font-weight:700}
+.stats{margin-left:auto;display:flex;gap:14px;font-size:11px;color:var(--dim)}
+.stats b{color:var(--ink);font-size:12px}
+.body{display:grid;grid-template-columns:186px 1fr 330px;height:520px}
+.col{border-right:1px solid var(--line);padding:10px;font-size:11.5px}
+.col:last-child{border-right:none}
+.h{font-size:10px;letter-spacing:.14em;color:var(--dim);margin:10px 0 6px}
+.tree{color:#5e5748;line-height:1.85;font-size:11.5px}
+.tree em{color:var(--amber);font-style:normal}
+.stage{position:relative;background:radial-gradient(circle at 30% 20%,#fffdf8,#f6f1e6 60%,#efe8d9);overflow:hidden}
+.stream .row{display:flex;gap:7px;font-size:11px;padding:5px 0;border-bottom:1px dashed #e6ddcb;color:#5e5748}
+.stream .t{color:var(--dim);width:34px;flex:none}
+.stream .k{width:44px;flex:none;color:var(--blue);font-weight:700}
+.bottom{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line)}
+.panel{padding:8px 10px;border-right:1px solid var(--line);font-size:11px}
+.panel:last-child{border-right:none}
+.panel .ph{font-size:9.5px;letter-spacing:.14em;color:var(--dim);margin-bottom:6px}
+.bars{display:flex;align-items:flex-end;gap:3px;height:34px}
+.bars i{display:block;width:7px;background:#f0c479;border-radius:2px}
+.hot{line-height:1.9}
+.hot s{text-decoration:none;display:inline-block;height:5px;background:var(--amber);border-radius:3px;vertical-align:middle;margin-right:6px}
+.grid{display:grid;grid-template-columns:repeat(18,1fr);gap:2px}
+.grid i{height:5px;background:#eee4d2;border-radius:1px;display:block}
+.grid i.on{background:#e8b45e}
+</style></head><body><div class="win">
+<div class="bar"><div class="dots"><i style="background:#e06c5f"></i><i style="background:#e8b45e"></i><i style="background:#7bbf6a"></i></div>
+<div class="title">dsh-factory</div>
+<div class="tabs"><span class="tab on">工厂</span><span class="tab">水流</span><span class="tab">路由</span><span class="tab">Trace</span></div>
+<div class="stats"><span>耗时 <b>12m 41s</b></span><span>IN <b>9.2k</b></span><span>OUT <b>41.7k</b></span><span>TOOLS <b>9</b></span><span>CALLS <b>128</b></span></div></div>
+
+<div class="body">
+<div class="col">
+<div class="h">册 / 章</div>
+<div class="tree">▾ vol-03 插件开发<br>&nbsp;&nbsp;<em>▾ 定时任务与巡检</em><br>&nbsp;&nbsp;&nbsp;&nbsp;e-7f3a…<br>&nbsp;&nbsp;&nbsp;&nbsp;e-c1c3…<br>&nbsp;&nbsp;▸ 提示词与技能<br>&nbsp;&nbsp;▸ 插件安装与升级<br>▾ vol-06 协作方法<br>&nbsp;&nbsp;▸ 工具与失败率<br>▸ vol-07 本地模型</div>
+<div class="h">本轮调用</div>
+<div class="tree">read · 6<br>search · 3<br>skill · 2<br>subagent · 1</div>
+</div>
+
+<div class="stage">
+<svg width="690" height="520" viewBox="0 0 690 520">
+<defs>
+<linearGradient id="mach" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbf0d8"/><stop offset="1" stop-color="#dfc49a"/></linearGradient>
+<linearGradient id="roof" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c98a4b"/><stop offset="1" stop-color="#a06a34"/></linearGradient>
+<linearGradient id="belt" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e3d3b4"/><stop offset="1" stop-color="#cbb794"/></linearGradient>
+<linearGradient id="glow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd27a"/><stop offset="1" stop-color="#e89a3c"/></linearGradient>
+</defs>
+<path d="M18 420 L345 292 L672 420 L345 548 Z" fill="#eee5d1" stroke="#d3c5aa" stroke-width="2"/>
+<!-- 传送带：辊子细节 -->
+<g>
+<path d="M52 300 L300 396" stroke="url(#belt)" stroke-width="14"/>
+</g>
+<g fill="#bfa981">
+</g>
+<!-- 装配塔（左） -->
+<g transform="translate(60,120)">
+ <rect x="18" y="26" width="96" height="104" rx="3" fill="url(#mach)" stroke="#b08e5c" stroke-width="1.6"/>
+ <path d="M6 26 L66 0 L126 26 L66 52 Z" fill="url(#roof)" stroke="#8d5a28" stroke-width="1.4"/>
+ <rect x="34" y="44" width="30" height="22" rx="2" fill="#fff7e4" stroke="#b08e5c"/><line x1="49" y1="44" x2="49" y2="66" stroke="#c8b18a"/>
+ <circle cx="92" cy="96" r="11" fill="none" stroke="#8d6a34" stroke-width="3"/><line x1="92" y1="85" x2="92" y2="96" stroke="#8d6a34" stroke-width="3"/>
+ <rect x="26" y="80" width="14" height="50" fill="#efdfc0" stroke="#b08e5c" stroke-width="1.2"/>
+ <line x1="30" y1="90" x2="36" y2="90" stroke="#b08e5c"/><line x1="30" y1="104" x2="36" y2="104" stroke="#b08e5c"/><line x1="30" y1="118" x2="36" y2="118" stroke="#b08e5c"/>
+ <rect x="104" y="-18" width="12" height="30" fill="#c8bda3" stroke="#9c8f74"/><ellipse cx="110" cy="-22" rx="9" ry="4" fill="#fff" opacity=".7"/>
+ <path d="M40 130 L40 150" stroke="#b08e5c" stroke-width="8"/><path d="M40 150 L96 150" stroke="#b08e5c" stroke-width="8"/>
+ <text x="18" y="176" font-size="11" fill="#6b5a3a" font-weight="700">装配车间</text>
+ <text x="18" y="190" font-size="9" fill="#8a7a58">system prompt 分段拼装</text>
+</g>
+<!-- Skill 书架塔（中，起点更右、瀑布式下落） -->
+<g transform="translate(232,208)">
+ <rect x="10" y="0" width="112" height="86" rx="2" fill="#f7ead0" stroke="#b08e5c" stroke-width="1.6"/>
+ <g stroke="#c8ac7c" stroke-width="5" stroke-linecap="round">
+  <line x1="22" y1="18" x2="96" y2="18"/><line x1="22" y1="34" x2="104" y2="34"/><line x1="22" y1="50" x2="88" y2="50"/><line x1="22" y1="66" x2="100" y2="66"/>
+ </g>
+ <rect x="40" y="10" width="7" height="16" fill="#c85a4a"/><rect x="50" y="10" width="7" height="16" fill="#6a8f4f"/><rect x="60" y="26" width="7" height="16" fill="#4a7a96"/>
+ <rect x="76" y="42" width="7" height="16" fill="#e8a33d"/>
+ <path d="M112 0 L112 86" stroke="#a98a58" stroke-width="3"/><circle cx="112" cy="12" r="3" fill="#e8a33d"/>
+ <path d="M20 86 L20 110 L60 110" stroke="#cbb794" stroke-width="7"/>
+ <text x="10" y="128" font-size="11" fill="#6b5a3a" font-weight="700">Skill 车间</text>
+ <text x="10" y="142" font-size="9" fill="#8a7a58">4 库扫描 · 命中 html-report</text>
+</g>
+<!-- 模型炉（中下） -->
+<g transform="translate(150,360)">
+ <rect x="30" y="0" width="104" height="66" rx="6" fill="url(#mach)" stroke="#b08e5c" stroke-width="1.6"/>
+ <circle cx="66" cy="33" r="14" fill="none" stroke="#c08c3e" stroke-width="4"/><circle cx="66" cy="33" r="4" fill="#c08c3e"/>
+ <circle cx="104" cy="33" r="9" fill="none" stroke="#c08c3e" stroke-width="3"/>
+ <rect x="36" y="46" width="18" height="12" rx="2" fill="url(#glow)" stroke="#c08c3e"/>
+ <path d="M76 0 L76 -14 L96 -14" stroke="#b08e5c" stroke-width="4" fill="none"/>
+ <text x="30" y="88" font-size="11" fill="#6b5a3a" font-weight="700">模型车间</text>
+ <text x="30" y="102" font-size="9" fill="#8a7a58">推理 · in 3.1k → out 2.4k</text>
+</g>
+<!-- 路由 / 工具 / 子代理（右侧竖排） -->
+<g transform="translate(452,150)">
+ <rect x="0" y="0" width="112" height="60" rx="3" fill="#f7ead0" stroke="#b08e5c" stroke-width="1.6"/>
+ <circle cx="24" cy="30" r="12" fill="none" stroke="#8d6a34" stroke-width="3"/><line x1="24" y1="30" x2="44" y2="16" stroke="#8d6a34" stroke-width="4" stroke-linecap="round"/>
+ <circle cx="92" cy="16" r="5" fill="#c85a4a"/><circle cx="92" cy="30" r="5" fill="#e8a33d"/><circle cx="92" cy="44" r="5" fill="#6a8f4f"/>
+ <text x="56" y="18" font-size="10" fill="#6b5a3a">路由道岔</text><text x="56" y="32" font-size="8.5" fill="#8a7a58">判定/分流</text>
+ <rect x="0" y="74" width="112" height="56" rx="3" fill="#f7ead0" stroke="#b08e5c" stroke-width="1.6"/>
+ <rect x="12" y="86" width="42" height="30" rx="3" fill="#e9f2f5" stroke="#4a7a96" stroke-width="1.5"/>
+ <path d="M54 101 L88 101" stroke="#4a7a96" stroke-width="3"/><circle cx="92" cy="101" r="4" fill="#4a7a96"/>
+ <text x="12" y="128" font-size="8.5" fill="#8a7a58">tool://local</text>
+ <rect x="0" y="144" width="112" height="52" rx="3" fill="#f7ead0" stroke="#b08e5c" stroke-width="1.6"/>
+ <circle cx="26" cy="170" r="9" fill="none" stroke="#6a8f4f" stroke-width="3"/><circle cx="52" cy="170" r="9" fill="none" stroke="#c9b48c" stroke-width="3"/>
+ <text x="70" y="174" font-size="9" fill="#8a7a58">子代理 ×2</text>
+</g>
+<!-- 物料箱（带捆带细节） -->
+<g>
+ <g transform="translate(200,330)"><rect width="22" height="16" rx="2" fill="#e8a33d" stroke="#a8761c" stroke-width="1.4"/><line x1="11" y1="0" x2="11" y2="16" stroke="#a8761c" stroke-width="1.4"/></g>
+ <g transform="translate(292,392)"><rect width="22" height="16" rx="2" fill="#e8a33d" stroke="#a8761c" stroke-width="1.4"/><line x1="11" y1="0" x2="11" y2="16" stroke="#a8761c" stroke-width="1.4"/></g>
+ <g transform="translate(380,414)"><rect width="22" height="16" rx="2" fill="#e8a33d" stroke="#a8761c" stroke-width="1.4"/><line x1="11" y1="0" x2="11" y2="16" stroke="#a8761c" stroke-width="1.4"/></g>
+</g>
+</svg>
+</div>
+
+<div class="col stream">
+<div class="h">TOOL STREAM</div>
+<div class="row"><span class="t">-1s</span><span class="k">read</span>vol-03/ch-…/e-7f3a.md</div>
+<div class="row"><span class="t">-4s</span><span class="k">search</span>「插件 安装」14 条</div>
+<div class="row"><span class="t">-7s</span><span class="k">skill</span>html-report 命中</div>
+<div class="row"><span class="t">-11s</span><span class="k">bash</span>node scripts/test-all.mjs</div>
+<div class="row"><span class="t">-15s</span><span class="k">edit</span>docs/汇报.html</div>
+<div class="h">当前阶段</div>
+<div class="row"><span class="k" style="color:var(--green)">运行</span>模型推理 · 2.4k out</div>
+</div>
+</div>
+
+<div class="bottom">
+<div class="panel"><div class="ph">CALL RATE / 15s</div><div class="bars"><i style="height:8px"></i><i style="height:14px"></i><i style="height:22px"></i><i style="height:12px"></i><i style="height:28px"></i><i style="height:18px"></i><i style="height:30px"></i><i style="height:10px"></i><i style="height:20px"></i><i style="height:26px"></i><i style="height:9px"></i><i style="height:16px"></i></div></div>
+<div class="panel"><div class="ph">HOT FILES</div><div class="hot"><div><s style="width:38px"></s>lib/index.js</div><div><s style="width:26px"></s>scripts/daily-check.mjs</div><div><s style="width:16px"></s>docs/汇报.html</div></div></div>
+<div class="panel"><div class="ph">TOKENS 分布</div><div class="hot"><div><s style="width:44px;background:#b9c9d6"></s>system 3.1k</div><div><s style="width:30px;background:#9fbfa8"></s>history 2.0k</div><div><s style="width:22px;background:#e8a33d"></s>tools 1.4k</div></div></div>
+<div class="panel"><div class="ph">TOOLS × TIME</div><div class="grid" id="g"></div></div>
+</div>
+</div>
+<script>
+const g=document.getElementById('g');let h='';for(let i=0;i<90;i++){const on=Math.random()>.62;h+=`<i class="${on?'on':''}"></i>`}g.innerHTML=h;
+</script>
+</body></html>

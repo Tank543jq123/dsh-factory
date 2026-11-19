@@ -1,0 +1,50 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+body{margin:0;background:#f4efe6;font-family:ui-monospace,Menlo,monospace}
+.win{width:1180px;margin:16px auto;background:#fbf8f2;border:1px solid #d8cfbd;border-radius:12px;overflow:hidden;box-shadow:0 16px 36px rgba(120,100,70,.16)}
+.bar{display:flex;gap:10px;align-items:center;padding:9px 14px;border-bottom:1px solid #d8cfbd;font-size:13px;font-weight:700}
+.bar .tag{font-size:11px;font-weight:400;color:#8a8071;border:1px solid #d8cfbd;border-radius:6px;padding:3px 8px;background:#fff}
+.stage{position:relative;height:520px;background:radial-gradient(circle at 30% 15%,#fffdf8,#f5efe2 62%,#ece4d4)}
+.belt{position:absolute;left:90px;top:352px;width:900px;height:26px;background:#d9c8a8;border:1px solid #bfa981;border-radius:6px;overflow:hidden}
+.roller{position:absolute;top:4px;width:16px;height:16px;border-radius:50%;background:#efe3c8;border:1px solid #bfa981;animation:spin 1.2s linear infinite}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.box{position:absolute;top:-16px;width:26px;height:20px;background:#e8a33d;border:1.5px solid #a8761c;border-radius:3px;animation:travel 9s linear infinite}
+.box:after{content:"";position:absolute;left:12px;top:0;width:2px;height:100%;background:#a8761c}
+@keyframes travel{0%{left:16px}100%{left:846px}}
+.dot{position:absolute;top:11px;width:6px;height:6px;border-radius:50%;background:#ffd27a;box-shadow:0 0 8px #ffcf6d;animation:flow 3.4s linear infinite}
+@keyframes flow{0%{left:0;opacity:0}10%{opacity:1}90%{opacity:1}100%{left:880px;opacity:0}}
+.unit{position:absolute;border:1.6px solid #b08e5c;border-radius:4px;background:linear-gradient(#fbf0d8,#dfc49a)}
+.worker{position:absolute;width:14px;height:26px;animation:walk 6s ease-in-out infinite}
+.worker b{display:block;width:10px;height:10px;border-radius:50%;background:#e6c9a0;border:1px solid #a98a58;margin:0 auto}
+.worker i{display:block;width:12px;height:15px;background:#8a6f4a;border-radius:3px;margin-top:1px}
+@keyframes walk{0%,100%{transform:translateX(0)}50%{transform:translateX(60px)}}
+.lbl{position:absolute;font-size:11px;color:#5f5443;background:rgba(255,252,244,.92);border:1px solid #ddd0b6;border-radius:5px;padding:3px 7px;white-space:nowrap}
+</style></head><body><div class="win">
+<div class="bar">dsh-factory <span class="tag">工厂</span><span class="tag">主线衔接样板</span><span style="margin-left:auto;font-weight:400;color:#8a8071;font-size:11px">装配 → Skill → 模型 · 箱子在带 · 光点流动</span></div>
+<div class="stage">
+ <!-- 建筑 -->
+ <div class="unit" style="left:96px;top:150px;width:150px;height:200px"></div>
+ <div class="unit" style="left:470px;top:190px;width:170px;height:165px"></div>
+ <div class="unit" style="left:790px;top:210px;width:150px;height:145px"></div>
+ <!-- 出入口（与传送带对齐） -->
+ <div style="position:absolute;left:236px;top:330px;width:22px;height:46px;background:#7a6244;border-radius:3px 3px 0 0"></div>
+ <div style="position:absolute;left:452px;top:330px;width:22px;height:46px;background:#7a6244;border-radius:3px 3px 0 0"></div>
+ <div style="position:absolute;left:626px;top:330px;width:22px;height:46px;background:#7a6244;border-radius:3px 3px 0 0"></div>
+ <div style="position:absolute;left:772px;top:330px;width:22px;height:46px;background:#7a6244;border-radius:3px 3px 0 0"></div>
+ <!-- 传送带 -->
+ <div class="belt" id="belt"></div>
+ <!-- 工人 -->
+ <div class="worker" style="left:260px;top:392px"><b></b><i></i></div>
+ <div class="worker" style="left:648px;top:392px;animation-delay:1.4s"><b></b><i></i></div>
+ <!-- 标签 -->
+ <div class="lbl" style="left:96px;top:360px">装配车间 · in 3.1k</div>
+ <div class="lbl" style="left:470px;top:368px">Skill 车间 · 4 库扫描</div>
+ <div class="lbl" style="left:790px;top:368px">模型车间 · out 2.4k</div>
+ <div class="lbl" style="left:96px;top:290px;border-color:#b08e5c">入口</div>
+ <div class="lbl" style="left:960px;top:330px;border-color:#b08e5c">出口</div>
+</div></div>
+<script>
+const b=document.getElementById('belt');
+for(let i=0;i<44;i++){const r=document.createElement('div');r.className='roller';r.style.left=(i*20+4)+'px';b.appendChild(r)}
+for(let i=0;i<3;i++){const bx=document.createElement('div');bx.className='box';bx.style.animationDelay=(i*3)+'s';b.appendChild(bx)}
+for(let i=0;i<5;i++){const d=document.createElement('div');d.className='dot';d.style.animationDelay=(i*0.68)+'s';b.appendChild(d)}
+</script></body></html>
