@@ -1138,6 +1138,76 @@ function registerActivityRoute(ctx) {
   })
 }
 
+/** 真实事件流：取最新会话日志尾部若干条 tool/call、tool/result、消息事件，供页面把包裹写成真实动作。 */
+function registerEventsRoute(ctx) {
+  ctx.inject(['webServer'], (scoped) => {
+    const server = scoped.get('webServer')
+    if (typeof server?.register !== 'function') return
+    scoped.effect(
+      () => server.register({
+        kind: 'exact',
+        path: '/dsh-factory/events.json',
+        handler: async (req, res) => {
+          const out = { events: [], session: '', ageSec: null }
+          try {
+            const { readdir, stat, readFile } = await import('node:fs/promises')
+            const { homedir } = await import('node:os')
+            const { join } = await import('node:path')
+            const zlib = await import('node:zlib')
+            const root = join(homedir(), '.dsh', 'sessions')
+            let newest = null
+            let newestMs = 0
+            for (const d of await readdir(root, { withFileTypes: true })) {
+              if (!d.isDirectory()) continue
+              let subs = []
+              try { subs = await readdir(join(root, d.name)) } catch { continue }
+              for (const s of subs) {
+                if (!s.startsWith('session-')) continue
+                const f = join(root, d.name, s, 'session.v4.jsonl.zstd')
+                try {
+                  const st = await stat(f)
+                  if (st.mtimeMs > newestMs) { newestMs = st.mtimeMs; newest = { f, s } }
+                } catch {}
+              }
+            }
+            if (newest) {
+              out.session = newest.s
+              out.ageSec = Math.round((Date.now() - newestMs) / 1000)
+              // 会话日志是多帧 zstd，zstdDecompressSync 只解第一帧；用系统 zstd 解全部帧
+              const { execFile } = await import('node:child_process')
+              const text = await new Promise((resolve) => {
+                execFile('zstd', ['-dc', newest.f], { maxBuffer: 64 * 1024 * 1024, timeout: 4000 }, (err, stdout) => {
+                  resolve(err ? '' : String(stdout))
+                })
+              })
+              const lines = text.trim().split("\n").slice(-500)
+              const evs = []
+              for (const line of lines) {
+                let e
+                try { e = JSON.parse(line) } catch { continue }
+                const t = e?.type
+                if (!['tool/call', 'tool/result', 'user/message', 'assistant/message', 'step/end', 'turn/end'].includes(t)) continue
+                let tool = ''
+                const d = e?.data || {}
+                if (t === 'tool/call') tool = d.toolName || d.name || d?.call?.name || ''
+                if (t === 'tool/result') tool = d.toolName || d?.message?.source?.toolName || ''
+                evs.push({ type: t, tool, at: e.time || null })
+              }
+              out.events = evs.slice(-8)
+            }
+          } catch (err) {
+            out.error = String(err?.message || err).slice(0, 120)
+          }
+          const buf = Buffer.from(JSON.stringify(out))
+          res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'content-length': buf.length, 'cache-control': 'no-store' })
+          res.end(buf)
+        },
+      }),
+      'dsh-factory: real event stream',
+    )
+  })
+}
+
 export function apply(ctx) {
   ctx.effect(
     () => ctx.sessionProjections.register(factoryProjection),
@@ -1146,6 +1216,7 @@ export function apply(ctx) {
   registerLibraryRoute(ctx)
   registerBlueprintRoute(ctx)
   registerActivityRoute(ctx)
+  registerEventsRoute(ctx)
   registerStatusRoute(ctx)
   registerLiveRoute(ctx)
   liveHook(ctx)

@@ -34,6 +34,7 @@ canvas{width:100%;display:block;border-radius:8px;background:#fbf8f0;image-rende
 .chk{display:inline-block;width:10px;height:10px;border:1.2px solid var(--ink);border-radius:2px;margin-right:6px;vertical-align:-1px}
 .chk.on{background:var(--orange2)}
 </style></head><body>
+<div id="evt" style="position:fixed;left:14px;bottom:12px;padding:6px 10px;border:2px solid #16130F;box-shadow:3px 3px 0 #16130F;font:11px ui-monospace;background:#fffdf7;color:#16130F;max-width:70vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:9">真实事件：加载中…</div>
 <div id="idleTag" style="position:fixed;right:14px;top:14px;padding:5px 10px;border:2px solid #16130F;box-shadow:3px 3px 0 #16130F;font:12px ui-monospace;background:#ddd3bd;color:#16130F;z-index:9">空闲 · 等待对话</div>
 <div class="dots"></div>
 <div class="wrap">
@@ -48,7 +49,7 @@ canvas{width:100%;display:block;border-radius:8px;background:#fbf8f0;image-rende
     <div class="panel">
       <div class="stats">
         <div class="stat"><div class="k">IN TOKENS</div><div class="v">1.2k</div></div>
-        <div class="stat"><div class="k">TOOL CALLS</div><div class="v">128</div></div>
+        <div class="stat"><div class="k">TOOL CALLS</div><div class="v" id="stat-calls">—</div></div>
         <div class="stat"><div class="k">FILES</div><div class="v">14</div></div>
         <div class="stat"><div class="k">OUT TOKENS</div><div class="v">41.7k</div></div>
       </div>
@@ -56,7 +57,8 @@ canvas{width:100%;display:block;border-radius:8px;background:#fbf8f0;image-rende
     </div>
     <div class="side">
       <div class="card">
-        <h3>TOOL STREAM <span>实时</span></h3>
+        <h3>TOOL STREAM <span id="real-note">实时</span></h3>
+        <div id="real-stream"></div>
         <div class="row"><span><span class="chk on"></span>main · 读 src/auth/login.ts</span><span>-1s</span></div>
         <div class="row"><span><span class="chk on"></span>tests · Grep “rateLimit”</span><span>-4s</span></div>
         <div class="row"><span><span class="chk on"></span>main · 读 src/api/routes.ts</span><span>-6s</span></div>
@@ -200,7 +202,38 @@ function drawModule(n){
   }
 }
 
-let T=0; let FACTORY_ACTIVE=false;
+let T=0; let FACTORY_ACTIVE=false; let FACTORY_REAL=null;
+const SES=new URLSearchParams(location.search).get('session')||'';
+const PHASE_TO_MODULE={ 'pre-step':'规则', 'post-step':'规则', 'tool':'工具', 'skill':'技能库', 'mcp':'MCP', 'model':'模型' };
+async function pollReal(){
+  if(!SES) return;
+  try{
+    const r=await fetch('/api/dsh-factory/live',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({sessionId:SES})});
+    const j=await r.json();
+    FACTORY_REAL=j?.value||null;
+    renderReal();
+  }catch(e){ FACTORY_REAL=null; }
+}
+function renderReal(){
+  const list=document.getElementById('real-stream');
+  const note=document.getElementById('real-note');
+  if(!list) return;
+  if(!SES){ list.innerHTML=''; if(note)note.textContent='未绑定会话：显示演示数据'; return; }
+  const hist=Array.isArray(FACTORY_REAL?.history)?FACTORY_REAL.history:[];
+  if(note) note.textContent = FACTORY_REAL ? ('会话 '+SES.slice(0,8)+' · '+(FACTORY_REAL.phase||'-')) : '会话 '+SES.slice(0,8)+' · 等待事件';
+  list.innerHTML = hist.slice(-6).reverse().map((x,i)=>`<div class="row"><span><span class="chk ${i===0?'on':''}"></span>${String(x.phase||'')} · ${String(x.label||'').slice(0,40)}</span><span>${x.at?new Date(x.at).toTimeString().slice(0,8):''}</span></div>`).join('') || '<div class="row" style="border:0"><span>还没有事件</span><span></span></div>';
+  const s=document.getElementById('stat-calls');
+  if(s) s.textContent = String(hist.length);
+}
+setInterval(pollReal,2000); pollReal();
+window.addEventListener('message', (ev) => {
+  const d = ev.data;
+  if (!d || d.type !== 'factory:state') return;
+  FACTORY_ACTIVE = d.running === true || (d.phase && d.phase.at && Date.now() - d.phase.at < 20000);
+  FACTORY_REAL = d.phase || null;
+  if (!SES) { const n=document.getElementById('real-note'); if(n) n.textContent = '会话内实时 · ' + (d.phase?.label || (d.running?'运行中':'空闲')); }
+  renderReal();
+});
 async function pollStatus(){try{
   const qs=location.search||'';
   let act=false, phase='';
@@ -208,7 +241,25 @@ async function pollStatus(){try{
   try{const rs=await fetch('/dsh-factory/status'+qs,{cache:'no-store'});if(rs.ok){const js=await rs.json();if(js.active===true){act=true;phase=js.phase||'';}}}catch(e){}
   const FACTORY_ACTIVE=act;ACTIVE=act;
   const j={active:act,phase};const b=document.getElementById('idle-badge')||document.getElementById('idleTag');if(b){b.textContent=FACTORY_ACTIVE?('运行中 · '+(j.phase||'处理中')):'空闲 · 等待对话';b.style.opacity=FACTORY_ACTIVE?'1':'.75';}}catch(e){FACTORY_ACTIVE=false;const b=document.getElementById('idle-badge')||document.getElementById('idleTag');if(b)b.textContent='空闲 · 等待对话';}}
-pollStatus();setInterval(pollStatus,3000); let ACTIVE=false;
+pollStatus();setInterval(pollStatus,3000);
+const EVT_WS={ 'tool/call':'工具', 'tool/result':'工具', 'user/message':'入口', 'assistant/message':'装配', 'step/end':'模型', 'turn/end':'落盘' };
+async function pollEvents(){
+  try{
+    const r=await fetch('/dsh-factory/events.json'+location.search,{cache:'no-store'});
+    if(!r.ok) return;
+    const j=await r.json();
+    const evs=(j.events||[]).slice(-4);
+    const box=document.getElementById('evt');
+    if(box){
+      if(!evs.length){box.textContent='真实事件：暂无（会话 '+(j.session||'—')+'）';}
+      else box.textContent='真实事件：'+evs.map(e=>{
+        const t=e.at?new Date(e.at).toLocaleTimeString('zh-CN',{hour12:false}):'';
+        return t+' '+(EVT_WS[e.type]||e.type)+(e.tool?('('+e.tool+')'):'');
+      }).join('  ·  ');
+    }
+  }catch(e){}
+}
+pollEvents();setInterval(pollEvents,3000); let ACTIVE=false;
 window.addEventListener('message',(e)=>{const v=e&&e.data; if(v==='dsh-factory:active')ACTIVE=true; else if(v==='dsh-factory:idle')ACTIVE=false;});
 function nodeAt(l){return NODES.find(n=>n.label===l);}
 function dashedLine(a,b){
