@@ -1,0 +1,95 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+body{margin:0;background:linear-gradient(#bfe2f2,#e8f4e8 60%,#cfe0bf);font-family:-apple-system,"PingFang SC",sans-serif}
+.stage{width:1280px;height:760px;position:relative;overflow:hidden}
+.cloud{position:absolute;background:rgba(255,255,255,.75);border-radius:50%;filter:blur(6px)}
+.lbl{position:absolute;background:rgba(255,252,240,.92);border:1.5px solid #7a6a4f;border-radius:6px;padding:6px 10px;font-size:13px;color:#4a3f2e;box-shadow:2px 3px 0 rgba(90,80,60,.18)}
+.lbl b{font-size:14px} .muted{color:#7a6a4f}
+</style></head><body><div class="stage">
+<svg width="1280" height="760" viewBox="0 0 1280 760">
+<defs>
+ <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a8d4ea"/><stop offset=".55" stop-color="#dcefdf"/><stop offset="1" stop-color="#bcd6a8"/></linearGradient>
+ <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c99a63"/><stop offset="1" stop-color="#9c6f42"/></linearGradient>
+ <linearGradient id="woodDark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8d6138"/><stop offset="1" stop-color="#6d4726"/></linearGradient>
+ <linearGradient id="brass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e6c76a"/><stop offset="1" stop-color="#b98f34"/></linearGradient>
+ <linearGradient id="stone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfd6c4"/><stop offset="1" stop-color="#9aa894"/></linearGradient>
+ <linearGradient id="water" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8fd0d8"/><stop offset="1" stop-color="#5fa9bb"/></linearGradient>
+ <filter id="soft"><feGaussianBlur stdDeviation="2.2"/></filter>
+</defs>
+<rect width="1280" height="760" fill="url(#sky)"/>
+<ellipse cx="200" cy="140" rx="180" ry="52" fill="#fff" opacity=".55" filter="url(#soft)"/>
+<ellipse cx="980" cy="110" rx="220" ry="58" fill="#fff" opacity=".5" filter="url(#soft)"/>
+<ellipse cx="640" cy="60" rx="160" ry="40" fill="#fff" opacity=".38" filter="url(#soft)"/>
+
+<!-- 地面平台 等距 -->
+<g transform="translate(0,0)">
+<path d="M120 560 L640 380 L1160 560 L640 740 Z" fill="#a8bd8f"/>
+<path d="M120 560 L640 380 L1160 560 L640 740 Z" fill="none" stroke="#7c9068" stroke-width="3" opacity=".7"/>
+<path d="M640 380 L1160 560 L640 740" fill="none" stroke="#93a87c" stroke-width="14" opacity=".35"/>
+</g>
+
+<!-- 主进料管道（从左下斜上） -->
+<g>
+<path d="M60 660 L300 570" stroke="url(#water)" stroke-width="26" stroke-linecap="round"/>
+<path d="M60 660 L300 570" stroke="#ffffff" stroke-width="7" stroke-linecap="round" opacity=".45"/>
+<circle cx="60" cy="660" r="17" fill="#e9f6f3" stroke="#5fa9bb" stroke-width="3"/>
+<text x="26" y="700" font-size="14" fill="#3f5a4a">对话输入</text>
+</g>
+
+<!-- 路由主体：木塔 + 三个出口 -->
+<g transform="translate(300,300)">
+ <!-- 底座 -->
+ <path d="M0 200 L150 130 L300 200 L150 270 Z" fill="url(#stone)"/>
+ <path d="M0 200 L0 240 L150 310 L300 240 L300 200 L150 270 Z" fill="#7f8f79"/>
+ <!-- 塔身 -->
+ <path d="M60 130 L60 40 L150 0 L240 40 L240 130 L150 170 Z" fill="url(#wood)"/>
+ <path d="M60 40 L150 0 L240 40 L150 80 Z" fill="url(#woodDark)"/>
+ <path d="M60 40 L60 130 L150 170 L150 80 Z" fill="#b98a58"/>
+ <!-- 屋顶 -->
+ <path d="M40 44 L150 -8 L260 44 L150 96 Z" fill="#8f5b3f"/>
+ <path d="M40 44 L150 96 L150 108 L40 56 Z" fill="#6f442d"/>
+ <!-- 烟囱 -->
+ <g><rect x="196" y="-34" width="20" height="46" fill="#8a8f7b"/><rect x="190" y="-44" width="32" height="12" rx="3" fill="#b9bda9"/>
+ <circle cx="206" cy="-58" r="9" fill="#fff" opacity=".65" filter="url(#soft)"/><circle cx="214" cy="-74" r="7" fill="#fff" opacity=".45" filter="url(#soft)"/></g>
+ <!-- 正面：逻辑三步 -->
+ <rect x="86" y="46" width="128" height="66" rx="6" fill="#f6ecd6" stroke="#7a5a38" stroke-width="2"/>
+ <text x="96" y="66" font-size="12" fill="#6b533a">① 判输入</text>
+ <text x="96" y="84" font-size="12" fill="#6b533a">② 选路径</text>
+ <text x="96" y="102" font-size="12" fill="#6b533a">③ 放行/合并</text>
+ <!-- 道岔杠杆 -->
+ <circle cx="150" cy="140" r="13" fill="url(#brass)" stroke="#8a6a24" stroke-width="2"/>
+ <line x1="150" y1="140" x2="184" y2="112" stroke="#8a6a24" stroke-width="5" stroke-linecap="round"/>
+ <circle cx="184" cy="112" r="7" fill="#e2574c"/>
+</g>
+
+<!-- 三个出口分支（不同长度、瀑布错落） -->
+<g>
+ <!-- 出口A：单轮直行 -->
+ <path d="M470 470 L820 470" stroke="url(#water)" stroke-width="22" stroke-linecap="round"/>
+ <path d="M470 470 L820 470" stroke="#fff" stroke-width="6" opacity=".4"/>
+ <g transform="translate(820,430)"><rect width="120" height="80" rx="8" fill="#efe4cb" stroke="#7a5a38" stroke-width="2"/>
+ <text x="14" y="26" font-size="13" fill="#6b533a">单轮直通</text><text x="14" y="48" font-size="12" fill="#94805f">主循环继续</text>
+ <path d="M14 58 L100 58" stroke="#c9b48c" stroke-width="3"/></g>
+
+ <!-- 出口B：派子代理（向下瀑布） -->
+ <path d="M455 500 L500 560 L760 640" stroke="url(#water)" stroke-width="20" stroke-linecap="round" fill="none"/>
+ <path d="M455 500 L500 560 L760 640" stroke="#fff" stroke-width="5" opacity=".35" fill="none"/>
+ <g transform="translate(700,610)"><rect width="150" height="86" rx="8" fill="#efe4cb" stroke="#7a5a38" stroke-width="2"/>
+ <text x="12" y="24" font-size="13" fill="#6b533a">派子代理（支线）</text>
+ <text x="12" y="44" font-size="12" fill="#94805f">各自一条车道</text>
+ <circle cx="24" cy="62" r="6" fill="#7bbf6a"/><circle cx="46" cy="62" r="6" fill="#7bbf6a"/><circle cx="68" cy="62" r="6" fill="#d9d2bf"/></g>
+
+ <!-- 出口C：跳过 -->
+ <path d="M470 440 L520 380 L800 340" stroke="#cbbfa4" stroke-width="14" stroke-linecap="round" fill="none" stroke-dasharray="14 10"/>
+ <g transform="translate(790,300)"><rect width="120" height="72" rx="8" fill="#f1ece0" stroke="#9d8f74" stroke-width="2"/>
+ <text x="12" y="26" font-size="13" fill="#7d6f56">跳过</text><text x="12" y="46" font-size="12" fill="#a3957c">未触发则空转</text></g>
+</g>
+
+<!-- 齿轮装饰 -->
+<g opacity=".9" transform="translate(1030,470)">
+ <circle r="46" fill="url(#brass)" stroke="#8a6a24" stroke-width="3"/>
+ <circle r="12" fill="#efe4cb" stroke="#8a6a24" stroke-width="3"/>
+</g>
+</svg>
+<div class="lbl" style="left:300px;top:250px"><b>路由车间</b><br><span class="muted">输入判定 → 选路径 → 放行/合并</span></div>
+<div class="lbl" style="left:520px;top:690px"><b>物料：一段对话</b><br><span class="muted">走到岔口被拨向不同支线</span></div>
+</div></body></html>
