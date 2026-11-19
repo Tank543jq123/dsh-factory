@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>伪 3D · 三条并行产线</title>
+<style>
+html,body{margin:0;background:#0a0e14;color:#e8eaed;font:14px/1.6 -apple-system,"PingFang SC",sans-serif}
+.wrap{padding:14px 18px}h1{font-size:16px;margin:0 0 4px}
+.sub{color:#93a1b5;font-size:12px;margin-bottom:10px}
+canvas{width:100%;image-rendering:pixelated;border:1px solid #22303f;border-radius:8px;background:#070b12}
+.legend{color:#93a1b5;font-size:11.5px;margin-top:8px}
+</style></head><body><div class="wrap">
+<h1>伪 3D（等距）· 三条并行产线 · 单向流水</h1>
+<div class="sub">固定等距视角；三条产线全部沿同一方向流动；箱子上标 token 估算，输入口标本轮输入 token</div>
+<canvas id="cv" width="1240" height="700"></canvas>
+<div class="legend">主线：推理；副线 A：记忆/技能检索；副线 B：外部接口（MCP）。等距视角下三条线平行排开，互不穿插。</div>
+</div>
+<script>
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+ctx.imageSmoothingEnabled=false;
+const W=1240,H=760,TILE=17, OX=300, OY=150;
+const iso=(x,y,z=0)=>({X:OX+(x-y)*TILE*0.87, Y:OY+(x+y)*TILE*0.5-z*TILE});
+const P={bg:'#070b12',plat:'#1b2740',skirt:'#0f1928',grid:'rgba(140,180,240,.06)',
+ belt:'#2a2f3a',beltHi:'#3b4452',wall:'#3a4f6b',wallL:'#2b3c55',wallR:'#22304a',roof:'#4d6489',
+ amber:'#ffb547',teal:'#4fd1c5',sky:'#6fc3ff',crate:'#c9a06a',crateDark:'#7a5a30',txt:'#e8eaed',dim:'#93a1b5'};
+function poly(pts,c){ctx.fillStyle=c;ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.X,p.Y):ctx.moveTo(p.X,p.Y));ctx.closePath();ctx.fill();}
+function box(x,y,z,w,d,h,top,left,right){
+  const p=(a,b,c)=>iso(x+a*w,y+b*d,z+c*h);
+  poly([p(0,0,1),p(1,0,1),p(1,1,1),p(0,1,1)],top);
+  poly([p(0,1,1),p(1,1,1),p(1,1,0),p(0,1,0)],left);
+  poly([p(1,0,1),p(1,1,1),p(1,1,0),p(1,0,0)],right);
+  ctx.strokeStyle='rgba(6,10,16,.65)';ctx.lineWidth=1;
+  ctx.beginPath();[p(0,0,1),p(1,0,1),p(1,1,1),p(0,1,1)].forEach((q,i)=>i?ctx.lineTo(q.X,q.Y):ctx.moveTo(q.X,q.Y));ctx.closePath();ctx.stroke();
+}
+// 三条产线（y 为深度方向上的排布），方向统一 +x
+const LANES=[
+  {name:'主线 · 推理',       dy:0,  color:P.amber, items:[['用户消息','1.2k'],['系统提示','8.4k'],['选工具','0.3k'],['bash','2.1k'],['推理','6.7k'],['回答','1.8k']]},
+  {name:'副线 A · 记忆检索', dy:7,  color:P.teal,  items:[['查询','0.4k'],['规则','1.1k'],['匹配','0.2k'],['手册','3.2k'],['汇总','1.4k'],['注入','0.9k']]},
+  {name:'副线 B · 外部接口', dy:14, color:P.sky,   items:[['请求','0.3k'],['鉴权','0.1k'],['路由','0.2k'],['MCP','1.7k'],['解析','0.8k'],['合并','0.5k']]},
+];
+const STX=[2,8,14,20,26,32];           // 站点沿 x 的位置
+const STN=['输入','规则','路由','工具','模型','输出'];
+let T=0;
+function worker(x,y,carry){
+  const q=iso(x,y,0), s=1;
+  ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(q.X,q.Y+2,6,3,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=P.wallL;ctx.fillRect(q.X-3,q.Y-16,6,11);
+  ctx.fillStyle='#e8b48a';ctx.fillRect(q.X-2,q.Y-21,5,5);
+  ctx.fillStyle=P.amber;ctx.fillRect(q.X-3,q.Y-22,7,2);
+  if(carry){ctx.fillStyle=P.crate;ctx.fillRect(q.X+3,q.Y-18,7,6);ctx.fillStyle=P.crateDark;ctx.fillRect(q.X+3,q.Y-18,7,1);}
+}
+function frame(){
+  T+=0.016;
+  ctx.fillStyle=P.bg;ctx.fillRect(0,0,W,H);
+  // 平台
+  poly([iso(0,0,0),iso(36,0,0),iso(36,18,0),iso(0,18,0)],P.plat);
+  poly([iso(0,18,0),iso(36,18,0),iso(36,18.8,-0.4),iso(0,18.8,-0.4)],P.skirt);
+  poly([iso(36,0,0),iso(36.8,0,0),iso(36.8,18,-0.4),iso(36,18,-0.4)],'#0b1420');
+  for(let x=0;x<=36;x+=3){const a=iso(x,0,0),b=iso(x,18,0);ctx.strokeStyle=P.grid;ctx.beginPath();ctx.moveTo(a.X,a.Y);ctx.lineTo(b.X,b.Y);ctx.stroke();}
+  for(let y=0;y<=18;y+=2){const a=iso(0,y,0),b=iso(36,y,0);ctx.strokeStyle=P.grid;ctx.beginPath();ctx.moveTo(a.X,a.Y);ctx.lineTo(b.X,b.Y);ctx.stroke();}
+
+  const draws=[];
+  LANES.forEach((ln,li)=>{
+    // 传送带（沿 +x，宽度 2.4）
+    for(let x=0;x<36;x+=2){
+      const c=(Math.floor(T*4)+x)%4<2?P.belt:P.beltHi;
+      poly([iso(x,ln.dy,0.2),iso(x+2,ln.dy,0.2),iso(x+2,ln.dy+2.4,0.2),iso(x,ln.dy+2.4,0.2)],c);
+    }
+    // 站点机器
+    STX.forEach((sx,si)=>{
+      draws.push({k:sx+ln.dy, fn:()=>{
+        const active=Math.sin(T*1.2+si+li)>0.2;
+        box(sx,ln.dy+0.2,0.2,2.2,2.0,si===4?3.4:2.0,P.wall,P.wallL,P.wallR);
+        box(sx-0.1,ln.dy+0.1,2.2+(si===4?1.2:0),2.4,2.2,0.2,P.roof,'#33456a','#2b3c58');
+        const q=iso(sx+1.1,ln.dy+1.2,si===4?2.6:1.2);
+        // 机器内部细节
+        ctx.fillStyle=active?ln.color:'#5a6b80';ctx.fillRect(q.X-4,q.Y-6,8,6);
+        if(si===4){const ph=Math.sin(T*6)>0?0:6;ctx.fillStyle=P.amber;ctx.fillRect(q.X-3,q.Y-16+ph,6,8);}
+        if(si===2||si===3){for(let k=0;k<3;k++){const on=Math.sin(T*5+k+si)>0;ctx.fillStyle=on?ln.color:'#2a3440';ctx.fillRect(q.X-8+k*6,q.Y-12,4,3);}}
+        // 站名
+        ctx.fillStyle=P.dim;ctx.font='9px ui-monospace,monospace';ctx.fillText(STN[si],q.X-8,q.Y-22);
+      }});
+    });
+    // 箱子与工人
+    ln.items.forEach((it,i)=>{
+      const phase=((T*0.10+i/ln.items.length+li*0.11)%1);
+      const x=phase*36;
+      draws.push({k:x+ln.dy+0.5, fn:()=>{
+        box(x,ln.dy+0.5,0.25,1.6,1.4,0.9,P.crate,P.crateDark,'#8a6636');
+        const q=iso(x+0.8,ln.dy+1.2,1.2);
+        ctx.fillStyle=P.txt;ctx.font='8px ui-monospace,monospace';ctx.fillText(it[1],q.X-6,q.Y);
+        ctx.fillStyle=ln.color;ctx.font='8px ui-monospace,monospace';ctx.fillText(it[0],q.X-10,q.Y-10);
+      }});
+    });
+    draws.push({k:6+ln.dy, fn:()=>worker(6,ln.dy+3.6,true)});
+    draws.push({k:22+ln.dy, fn:()=>worker(22,ln.dy+3.6,false)});
+    // 产线标签
+    const lab=iso(0.5,ln.dy+1.2,2.6);
+    ctx.fillStyle=ln.color;ctx.font='11px ui-monospace,monospace';ctx.fillText(ln.name,lab.X-90,lab.Y-10);
+  });
+  draws.sort((a,b)=>a.k-b.k).forEach(d=>d.fn());
+  // 顶部信息
+  ctx.fillStyle='rgba(8,12,18,.86)';ctx.fillRect(14,14,W-28,30);
+  ctx.fillStyle=P.amber;ctx.font='12px ui-monospace,monospace';
+  ctx.fillText('输入 tokens ≈ 1.2k  →  规则 / 技能 / 工具  →  模型  →  输出',26,34);
+  requestAnimationFrame(frame);
+}
+frame();
+</script></body></html>
