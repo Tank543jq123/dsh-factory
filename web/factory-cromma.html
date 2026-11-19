@@ -201,7 +201,7 @@ function drawModule(n){
 }
 
 let T=0; let FACTORY_ACTIVE=false;
-async function pollStatus(){try{const r=await fetch('/dsh-factory/status',{cache:'no-store'});const j=await r.json();FACTORY_ACTIVE=j.active===true;const b=document.getElementById('idle-badge');if(b){b.textContent=FACTORY_ACTIVE?('运行中 · '+(j.phase||'处理中')):'空闲 · 等待对话';b.style.opacity=FACTORY_ACTIVE?'1':'.75';}}catch(e){FACTORY_ACTIVE=false}}
+async function pollStatus(){try{let r=await fetch('/dsh-factory/status'+location.search,{cache:'no-store'});if(!r.ok)r=await fetch('/dsh-factory/activity.json'+location.search,{cache:'no-store'});const j=await r.json();FACTORY_ACTIVE=j.active===true;ACTIVE=FACTORY_ACTIVE;const b=document.getElementById('idle-badge')||document.getElementById('idleTag');if(b){b.textContent=FACTORY_ACTIVE?('运行中 · '+(j.phase||'处理中')):'空闲 · 等待对话';b.style.opacity=FACTORY_ACTIVE?'1':'.75';}}catch(e){FACTORY_ACTIVE=false}}
 pollStatus();setInterval(pollStatus,3000); let ACTIVE=false;
 window.addEventListener('message',(e)=>{const v=e&&e.data; if(v==='dsh-factory:active')ACTIVE=true; else if(v==='dsh-factory:idle')ACTIVE=false;});
 function nodeAt(l){return NODES.find(n=>n.label===l);}
@@ -225,7 +225,7 @@ function frame(){
   drawWorker(6+Math.sin(T*0.4)*2, 5.5, Math.sin(T*6)>0);
   drawWorker(19+Math.sin(T*0.5+2)*2, 6.5, Math.sin(T*6+1)>0);
   // 移动的箱子
-  if(!ACTIVE){requestAnimationFrame(frame);return;}
+  
   const seq=[['输入','规则'],['规则','路由'],['路由','技能库'],['技能库','模型'],['模型','输出']];
   const k=Math.floor(T*0.35)%seq.length, t=(T*0.35)%1;
   const a=nodeAt(seq[k][0]),b=nodeAt(seq[k][1]);
